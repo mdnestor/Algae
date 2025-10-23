@@ -1,0 +1,10 @@
+name = "Algae"
+version = "0.1.0"
+defaultTargets = ["algae"]
+
+[[lean_lib]]
+name = "Algae"
+
+[[lean_exe]]
+name = "algae"
+root = "Main"
