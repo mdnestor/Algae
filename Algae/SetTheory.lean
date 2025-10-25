@@ -100,12 +100,3 @@ def Set.preimage (f: α → β) (B: Set β): Set α :=
 
 def Set.range (f: α → β): Set β :=
   λ b ↦ ∃ a, f a = b
-
--- ... im a little jokester.
--- ok yeah you are sleeping in the doghouse wha!! -- can you sleep there with me..'
--- sure yes! or we could just sleep inside in your bed :o
--- you might be covered in tire debris.. idk.. you never let me in your bed :(
--- i would give you a bath but i know you will shake and get the whole room wet..
--- bath unnecessary ?
---
--- joke definiton

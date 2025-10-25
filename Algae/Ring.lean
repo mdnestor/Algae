@@ -40,7 +40,7 @@ theorem Ring.mul_neg_one (R: Ring α) (a: α): R.mul (R.neg R.one) a = R.neg a :
   sorry
 
 -- If 0 = 1 the ring is trivial.
-theorem Ring.zero_eq_one_trivial (R: Ring α) (a: α): R.mul (R.neg R.one) a = R.neg a := by
+theorem Ring.zero_eq_one_trivial {R: Ring α} (h: R.zero = R.one): ∀ a b: α, a = b := by
   sorry
 
 class CommutativeRing (α: Type u) where
