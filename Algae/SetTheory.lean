@@ -45,7 +45,6 @@ def Function.associator (A: Type u) (B: Type v) (C: Type w): A × B × C → (A 
 def Function.associator_inverse (A: Type u) (B: Type v) (C: Type w): (A × B) × C → A × B × C :=
   λ ⟨⟨a, b⟩, c⟩ ↦ ⟨a, ⟨b, c⟩⟩
 
-
 def Set (α: Type u): Type u :=
   α → Prop
 
@@ -59,7 +58,6 @@ def Set.empty (α: Type u): Set α :=
 def Set.full (α: Type u): Set α :=
   λ _ ↦ True
 
--- define this
 def Set.singleton {α: Type u} (a: α): Set α :=
   λ x ↦ x = a
 
@@ -101,11 +99,11 @@ instance: Union (Set α) := {
   union := Set.inter
 }
 
-theorem Set.union_left {A B: Set α} {a: α} (h: a ∈ A): a ∈ A ∪ B := by
-  sorry
+theorem Set.union_left {A B: Set α} {a: α} (h: a ∈ A): a ∈ A.union B := by
+  exact Or.inl h
 
-theorem Set.union_right {A B: Set α} {a: α} (h: a ∈ B): a ∈ A ∪ B := by
-  sorry
+theorem Set.union_right {A B: Set α} {a: α} (h: a ∈ B): a ∈ A.union B := by
+  exact Or.inr h
 
 def Set.compl (A: Set α): Set α :=
   λ x ↦ x ∉ A
@@ -185,8 +183,6 @@ theorem Set.inter_comm: Commutative (@Set.inter α) := by
   simp [Set.inter]
   constructor <;> (intro h; exact And.symm h;)
 
--- This is very ugly! :)
--- But I don't know how to simplify it
 example: Distributive (@Set.union α) (@Set.inter α) := by
   constructor
   · intro A B C
