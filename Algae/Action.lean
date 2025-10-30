@@ -2,6 +2,8 @@ import Algae.Monoid
 
 variable {M: Type u} {X: Type v}
 
+
+
 class Action (M: Type u) (X: Type v) extends MulMagma M, SMul M X where
   smul_associative: ∀ (a b: M) (x: X), a • (b • x) = (a * b) • x
 

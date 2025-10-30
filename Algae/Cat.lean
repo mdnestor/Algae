@@ -24,7 +24,7 @@ variable {α: Type u}
 -- }
 
 -- The category of types.
-def Set: Cat.{u + 1} := {
+def Sets: Cat.{u + 1} := {
   obj := Type u
   hom := λ x y ↦ x → y
   id := Function.id

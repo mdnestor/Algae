@@ -1,69 +1,98 @@
-import Algae.Magma
-import Algae.PointedSet
+import Algae.Basic
+import Algae.Morphism
+import Algae.Subobject
+import Algae.Kernel
 
-variable {M : Type u}
+variable {M : Type u} {A: Type u}
 
-class UnitalMagma (M : Type u) extends Magma M, PointedSet M where
-  add_identity: Identity add 0
 
-theorem add_zero_left [UnitalMagma M] (a: M): 0 + a = a := by
-  exact UnitalMagma.add_identity.left a
+class Monoid (A: Type u) extends Zero A, Add A where
+  add_zero: Identity add 0
+  add_assoc: Associative add
 
-theorem add_zero_right [UnitalMagma M] (a: M): a + 0 = a := by
-  exact UnitalMagma.add_identity.right a
+theorem add_zero_left [Monoid A] (a: A): 0 + a = a := by
+  exact Monoid.add_zero.left a
 
-def UnitalMagma.inverses [UnitalMagma M] (a b: M): Prop :=
+theorem add_zero_right [Monoid M] (a: M): a + 0 = a := by
+  exact Monoid.add_zero.right a
+
+theorem add_assoc [Monoid M] (a b c: M): a + b + c = a + (b + c) := by
+  exact Monoid.add_assoc a b c
+
+def Monoid.inverses [Monoid M] (a b: M): Prop :=
   Inverses Add.add a b 0
 
-def UnitalMagma.inverses_iff [UnitalMagma M] (a b: M):
+def Monoid.inverses_iff [Monoid M] (a b: M):
   inverses a b ↔ a + b = 0 ∧ b + a = 0 := by
   rfl
 
 /-
 
-In an additive unital magma we can "multiply" by natural numers a la `n • a` by
+In a monoid we can "multiply" by natural numers a la `n • a` by
 
 0 • a = 0
 1 • a = a
 2 • a = a + a
-3 • a = (a + a) + a
-4 • a = ((a + a) + a) + a (notice we don't have associavitiy)
+3 • a = a + a + a
+4 • a = a + a + a + a
 
 etc...
 
 -/
 
-def UnitalMagma.smul [UnitalMagma M] (n: Nat) (a: M): M :=
+def Monoid.smul [Monoid A] (n: Nat) (a: A): A :=
   match n with
   | Nat.zero => 0
   | Nat.succ p => smul p a + a
 
-instance [UnitalMagma M]: SMul Nat M := {
-  smul := UnitalMagma.smul
+instance [Monoid A]: SMul Nat A := {
+  smul := Monoid.smul
 }
 
 -- Simple theorems about npow.
-theorem UnitalMagma.smul_zero [UnitalMagma M] (a: M): 0 • a = 0 := by
+theorem Monoid.smul_zero [Monoid A] (a: A): 0 • a = 0 := by
   rfl
 
-theorem UnitalMagma.smul_succ [UnitalMagma M] (a: M) (n: Nat): n.succ • a = n • a + a := by
+theorem Monoid.smul_succ [Monoid A] (a: A) (n: Nat): n.succ • a = n • a + a := by
   rfl
 
-theorem UnitalMagma.smul_one [UnitalMagma M] (a: M): 1 • a = a := by
+theorem Monoid.smul_one [Monoid A] (a: A): 1 • a = a := by
   rw [smul_succ, smul_zero]
-  exact add_identity.left a
+  exact add_zero_left a
 
-theorem UnitalMagma.npow_two [UnitalMagma M] (a: M): 2 • a = a + a := by
+theorem Monoid.npow_two [Monoid M] (a: M): 2 • a = a + a := by
   rw [smul_succ, smul_one]
 
-class UnitalMagmaHom [UnitalMagma α] [UnitalMagma β] (f: α → β): Prop extends MagmaHom f, PointedSetHom f
+
+
+class MonoidHom [Monoid α] [Monoid β] (f: α → β): Prop where
+  zero_preserving: ZeroPreserving f
+  add_preserving: AddPreserving f
+
+theorem MonoidHom.id [Monoid α]: MonoidHom (@id α) := {
+  zero_preserving := ZeroPreserving.id
+  add_preserving := AddPreserving.id
+}
+
+theorem MonoidHom.comp [Monoid A] [Monoid B] [Monoid C]
+  {f: A → B} {g: B → C} (hf: MonoidHom f) (hg: MonoidHom g): MonoidHom (g ∘ f) := {
+  zero_preserving := ZeroPreserving.comp hf.zero_preserving hg.zero_preserving
+  add_preserving := AddPreserving.comp hf.add_preserving hg.add_preserving
+}
 
 
 
-class SubUnitalMagma [UnitalMagma α] (S: Set α) extends SubPointedSet S, SubMagma S
+class Submonoid [Monoid α] (S: Set α): Prop where
+  zero_mem: ZeroMem S
+  add_closed: AddClosed S
 
-theorem SubUnitalMagma.singleton [UnitalMagma α]: SubUnitalMagma (Set.singleton (0: α)) := {
-  zero_mem := rfl
+theorem Submonoid.full [Monoid α]: Submonoid (Set.full α) := {
+  zero_mem := ZeroMem.full
+  add_closed := AddClosed.full
+}
+
+theorem Submonoid.singleton [Monoid α]: Submonoid (Set.singleton (0: α)) := {
+  zero_mem := ZeroMem.singleton
   add_closed := by
     intro a b ha hb
     calc
@@ -72,26 +101,24 @@ theorem SubUnitalMagma.singleton [UnitalMagma α]: SubUnitalMagma (Set.singleton
       _ = 0 := by rw [add_zero_left]
 }
 
-def SubUnitalMagma.kernel_sub [UnitalMagma α] [UnitalMagma β] {f: α → β} (hf: UnitalMagmaHom f): SubUnitalMagma (kernel f) := {
+def Submonoid.kernel [Monoid α] [Monoid β] {f: α → β} (hf: MonoidHom f): Submonoid (Kernel f) := {
   zero_mem := hf.zero_preserving
   add_closed := by
     intro a b ha hb
     calc
       f (a + b)
-      = f a + f b := by rw [hf.add_preserving]
-      _ = 0 + 0 := by rw [ha, hb]
-      _ = 0 := by rw [add_zero_left]
+        = f a + f b := by rw [hf.add_preserving]
+      _ = 0 + 0     := by rw [ha, hb]
+      _ = 0         := by rw [add_zero_left]
 }
 
-class Monoid (M: Type u) extends UnitalMagma M, AssociativeMagma M
-
 theorem inverses_unique [Monoid M] {a b b': M}
-  (h: UnitalMagma.inverses a b) (h': UnitalMagma.inverses a b'): b = b' := by
-  simp_all [UnitalMagma.inverses_iff]
+  (h: Monoid.inverses a b) (h': Monoid.inverses a b'): b = b' := by
+  simp_all [Monoid.inverses_iff]
   calc
     b = b + 0        := by rw [add_zero_right]
     _ = b + (a + b') := by rw [h'.left]
-    _ = (b + a) + b' := by rw [add_associative]
+    _ = (b + a) + b' := by rw [add_assoc]
     _ = 0 + b'       := by rw [h.right]
     _ = b'           := by rw [add_zero_left]
 
@@ -99,109 +126,54 @@ theorem inverses_unique [Monoid M] {a b b': M}
 def Endomonoid (M: Type u): Monoid (M → M) := {
   add := λ f g ↦ g ∘ f
   zero := Function.id
-  add_identity := by constructor <;> exact congrFun rfl
-  add_associative := by intro _ _ _ ; rfl
+  add_zero := by constructor <;> exact congrFun rfl
+  add_assoc := by intro _ _ _ ; rfl
 }
 
 -- List M is a monoid.
 def FreeMonoid (M : Type u) : Monoid (List M) := {
   add := List.append
   zero := List.nil
-  add_identity := by constructor <;> (simp [LeftIdentity, RightIdentity]; rfl)
-  add_associative := by intro; simp
+  add_zero := by constructor <;> (simp [LeftIdentity, RightIdentity]; rfl)
+  add_assoc := by intro; simp
 }
 
-class CommutativeMonoid (M : Type u) extends Monoid M, CommutativeMagma M
 
-example (M: Type u): CommutativeMonoid (Set M) := {
+class CommMonoid (A : Type u) extends Monoid A where
+  add_comm: ∀ a b: A, a + b = b + a
+
+theorem add_comm [CommMonoid A] (a b: A): a + b = b + a := by
+  exact CommMonoid.add_comm a b
+
+
+example (M: Type u): CommMonoid (Set M) := {
   add := Set.union
   zero := Set.empty M
-  add_identity := by exact Set.union_identity
-  add_associative := by exact Set.union_assoc
-  add_commutative := by exact Set.union_comm
+  add_zero := by exact Set.union_identity
+  add_assoc := by exact Set.union_assoc
+  add_comm := by exact Set.union_comm
 }
 
-example (M: Type u): CommutativeMonoid (Set M) := {
+example (M: Type u): CommMonoid (Set M) := {
   add := Set.inter
   zero := Set.full M
-  add_identity := by exact Set.inter_identity
-  add_associative := by exact Set.inter_assoc
-  add_commutative := by exact Set.inter_comm
+  add_zero := by exact Set.inter_identity
+  add_assoc := by exact Set.inter_assoc
+  add_comm := by exact Set.inter_comm
 }
 
-example: CommutativeMonoid Nat := {
+example: CommMonoid Nat := {
   add := Nat.add
   zero := 0
-  add_identity := by constructor; simp [LeftIdentity]; exact congrFun rfl
-  add_associative := by exact Nat.add_assoc
-  add_commutative := by exact Nat.add_comm
+  add_zero := by constructor; simp [LeftIdentity]; exact congrFun rfl
+  add_assoc := by exact Nat.add_assoc
+  add_comm := by exact Nat.add_comm
 }
 
-example: CommutativeMonoid Nat := {
+example: CommMonoid Nat := {
   add := Nat.mul
   zero := 1
-  add_identity := ⟨Nat.one_mul, Nat.mul_one⟩
-  add_associative := by exact Nat.mul_assoc
-  add_commutative := by exact Nat.mul_comm
+  add_zero := ⟨Nat.one_mul, Nat.mul_one⟩
+  add_assoc := by exact Nat.mul_assoc
+  add_comm := by exact Nat.mul_comm
 }
-
--- example  (M: UnitalMagma M) (a: M): CommutativeMonoid (Subtype (Set.range (fun n: Nat ↦ M.npow a n))) := {
---   add := sorry
---   zero := sorry
---   identity := sorry
---   associative := sorry
---   commutative := sorry
--- }
-
-class UnitalMulMagma (M : Type u) extends MulMagma M, PointedMulSet M where
-  identity: Identity mul 1
-
-theorem mul_one_left [UnitalMulMagma M] (a: M): 1 * a = a := by
-  exact UnitalMulMagma.identity.left a
-
-theorem mul_one_right [UnitalMulMagma M] (a: M): a * 1 = a := by
-  exact UnitalMulMagma.identity.right a
-
-def UnitalMulMagma.inverses [UnitalMulMagma M] (a b: M): Prop :=
-  Inverses Mul.mul a b 1
-
-def UnitalMulMagma.inverses_iff [UnitalMulMagma M] (a b: M):
-  inverses a b ↔ a * b = 1 ∧ b * a = 1 := by
-  rfl
-
-def UnitalMulMagma.npow [UnitalMulMagma M] (a: M) (n: Nat): M :=
-  match n with
-  | Nat.zero => 1
-  | Nat.succ p => npow a p * a
-
-instance [UnitalMulMagma M]: HPow M Nat M := {
-  hPow := UnitalMulMagma.npow
-}
-
--- Simple theorems about npow.
-theorem npow_zero [UnitalMulMagma M] (a: M): a ^ 0 = 1 := by
-  rfl
-
-theorem npow_succ [UnitalMulMagma M] (a: M) (n: Nat): a ^ n.succ = a ^ n * a := by
-  rfl
-
-theorem npow_one [UnitalMulMagma M] (a: M): a ^ 1 = a := by
-  rw [npow_succ, npow_zero]
-  exact mul_one_left a
-
-theorem npow_two [UnitalMulMagma M] (a: M): a ^ 2 = a * a := by
-  rw [npow_succ, npow_one]
-
-class MulMonoid (M: Type u) extends UnitalMulMagma M, AssociativeMulMagma M
-
--- theorem inverses_unique [M: Monoid M] {a b b': M}
---   (h: UnitalMagma.inverses a b) (h': UnitalMagma.inverses a b'): b = b' := by
---   simp_all [UnitalMagma.inverses_iff]
---   calc
---     b = b + 0        := by rw [add_zero_right]
---     _ = b + (a + b') := by rw [h'.left]
---     _ = (b + a) + b' := by rw [add_associative]
---     _ = 0 + b'       := by rw [h.right]
---     _ = b'           := by rw [add_zero_left]
-
-class CommutativeMulMonoid (M : Type u) extends MulMonoid M, CommutativeMulMagma M
