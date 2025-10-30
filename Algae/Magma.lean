@@ -1,10 +1,12 @@
 
 import Algae.Basic
+import Algae.SetTheory
+
+variable {M: Type u}
+
 
 -- A magma, i.e. a binary operation on a type.
 class Magma (M: Type u) extends Add M
-
-variable {M: Type u}
 
 class AssociativeMagma (M: Type u) extends Magma M where
   add_associative: Associative add
@@ -17,6 +19,34 @@ class CommutativeMagma (M: Type u) extends Magma M where
 
 theorem add_commutative [CommutativeMagma M] (a b: M): a + b = b + a := by
   exact CommutativeMagma.add_commutative a b
+
+class MagmaHom [Magma α] [Magma β] (f: α → β): Prop where
+  add_preserving: ∀ a₁ a₂: α, f (a₁ + a₂) = f a₁ + f a₂
+
+theorem MagmaHom.id [Magma α]: MagmaHom (@id α) := by
+  constructor; intros; rfl
+
+theorem MagmaHom.comp [Magma α] [Magma β] [Magma γ] {f: α → β} {g: β → γ} (hf: MagmaHom f) (hg: MagmaHom g) : MagmaHom (g ∘ f) := by
+  constructor
+  simp [hf.add_preserving, hg.add_preserving]
+
+
+
+class SubMagma [Magma M] (S: Set M): Prop where
+  add_closed: ∀ a b, a ∈ S → b ∈ S → a + b ∈ S
+
+theorem SubMagma.full [Magma M]: SubMagma (Set.full M) := by
+  constructor; intros; trivial
+
+theorem SubMagma.empty [Magma M]: SubMagma (Set.empty M) := by
+  constructor; intros; trivial
+
+theorem SubMagma.inter [Magma M] {A B: Set M} (hA: SubMagma A) (hB: SubMagma B): SubMagma (A ∩ B) := by
+  constructor
+  intro _ _  ha hb
+  constructor
+  exact hA.add_closed _ _ (Set.inter_left ha) (Set.inter_left hb)
+  exact hB.add_closed _ _ (Set.inter_right ha) (Set.inter_right hb)
 
 
 

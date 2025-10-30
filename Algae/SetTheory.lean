@@ -3,10 +3,48 @@ import Algae.Basic
 variable {α: Type u} {β: Type v}
 
 def Function.id {α: Type u}: α → α :=
-  λ x ↦ x
+  λ a ↦ a
+
+def Function.constant (α: Type u) {β: Type v} (b: β): α → β :=
+  λ _ ↦ b
 
 def Function.Bijective  (f: α → β): Prop :=
   Injective f ∧ Surjective f
+
+def Function.inverses (f: α → β) (g: β → α): Prop :=
+  g ∘ f = id
+
+theorem Function.inverses_id: inverses (@id α) (@id α) := by
+  constructor <;> rfl
+
+theorem Function.inverses_comp (hf: inverses f f') (hg: inverses g g'): inverses (g ∘ f) (f' ∘ g') := by
+  calc
+    (f' ∘ g') ∘ g ∘ f
+  _ = f' ∘ (g' ∘ g) ∘ f := by rfl
+  _ = f' ∘ id ∘ f := by rw [hg]
+  _ = f' ∘ f := by rfl
+  _ = id := by rw [hf]
+
+def Function.invertible (f: α → β): Prop :=
+  ∃ g, Function.inverses f g ∧ Function.inverses g f
+
+theorem Function.invertible_id {α: Type u}: Function.invertible (@id α) := by
+  exists id
+
+theorem Function.invertible_comp {f: α → β} {g: β → γ} (hf: invertible f) (hg: invertible g): invertible (g ∘ f) := by
+  obtain ⟨f', hf⟩ := hf
+  obtain ⟨g', hg⟩ := hg
+  exists f' ∘ g'
+  constructor
+  exact Function.inverses_comp hf.left hg.left
+  exact Function.inverses_comp hg.right hf.right
+
+def Function.associator (A: Type u) (B: Type v) (C: Type w): A × B × C → (A × B) × C :=
+  λ ⟨a, ⟨b, c⟩⟩ ↦ ⟨⟨a, b⟩, c⟩
+
+def Function.associator_inverse (A: Type u) (B: Type v) (C: Type w): (A × B) × C → A × B × C :=
+  λ ⟨⟨a, b⟩, c⟩ ↦ ⟨a, ⟨b, c⟩⟩
+
 
 def Set (α: Type u): Type u :=
   α → Prop
@@ -21,6 +59,10 @@ def Set.empty (α: Type u): Set α :=
 def Set.full (α: Type u): Set α :=
   λ _ ↦ True
 
+-- define this
+def Set.singleton {α: Type u} (a: α): Set α :=
+  λ x ↦ x = a
+
 instance: Membership α (Set α) := {
   mem := λ A a ↦ A a
 }
@@ -33,6 +75,12 @@ instance: EmptyCollection (Set α) := {
   emptyCollection := Set.empty α
 }
 
+theorem Set.empty_subset (A: Set α): ∅ ⊆ A := by
+  exact fun _ => False.elim
+
+theorem Set.subset_full (A: Set α): A ⊆ Set.full α := by
+  exact fun _ _ => trivial
+
 def Set.inter (A B: Set α): Set α :=
   λ x ↦ x ∈ A ∧ x ∈ B
 
@@ -40,12 +88,24 @@ instance: Inter (Set α) := {
   inter := Set.inter
 }
 
+theorem Set.inter_left {A B: Set α} {a: α} (h: a ∈ A ∩ B): a ∈ A := by
+  exact h.left
+
+theorem Set.inter_right {A B: Set α} {a: α} (h: a ∈ A ∩ B): a ∈ B := by
+  exact h.right
+
 def Set.union (A B: Set α): Set α :=
   λ x ↦ x ∈ A ∨ x ∈ B
 
 instance: Union (Set α) := {
   union := Set.inter
 }
+
+theorem Set.union_left {A B: Set α} {a: α} (h: a ∈ A): a ∈ A ∪ B := by
+  sorry
+
+theorem Set.union_right {A B: Set α} {a: α} (h: a ∈ B): a ∈ A ∪ B := by
+  sorry
 
 def Set.compl (A: Set α): Set α :=
   λ x ↦ x ∉ A
@@ -69,24 +129,20 @@ theorem Set.union_identity: Identity Set.union (Set.empty α) := by
   exact ⟨Set.union_left_identity, Set.union_right_identity⟩
 
 theorem Set.union_assoc: Associative (@Set.union α) := by
-  intro A B C
-  funext x
+  intro _ _ _
+  funext
   simp [Set.union]
   constructor
-  · intro h
-    cases h with
-    | inl h =>
-      cases h with
-      | inl h => exact Or.inl h
-      | inr h => exact Or.inr (Or.inl h)
-    | inr h => exact Or.inr (Or.inr h)
-  · intro h
-    cases h with
-    | inl h => exact Or.inl (Or.inl h)
-    | inr h =>
-      cases h with
-      | inl h => exact Or.inl (Or.inr h)
-      | inr h => exact Or.inr h
+  · intro h; cases h with
+    | inl h => cases h with
+      | inl => apply Or.inl; assumption
+      | inr => apply Or.inr; apply Or.inl; assumption
+    | inr => apply Or.inr; apply Or.inr; assumption
+  · intro h; cases h with
+    | inl => apply Or.inl; apply Or.inl; assumption
+    | inr h => cases h with
+      | inl => apply Or.inl; apply Or.inr; assumption
+      | inr => apply Or.inr; assumption
 
 theorem Set.union_comm: Commutative (@Set.union α) := by
   intro A B
@@ -96,32 +152,32 @@ theorem Set.union_comm: Commutative (@Set.union α) := by
 
 theorem Set.inter_identity: Identity Set.inter (Set.full α) := by
   constructor
-  · intro A
-    funext x
+  · intro
+    funext
     simp [Set.inter]
     constructor
-    · intro h
-      exact h.right
-    · intro h
-      exact ⟨trivial, h⟩
-  · intro A
-    funext x
+    · intro h; exact h.right
+    · intro h; exact ⟨trivial, h⟩
+  · intro
+    funext
     simp [Set.inter]
     constructor
-    · intro h
-      exact h.left
-    · intro h
-      exact ⟨h, trivial⟩
+    · intro h; exact h.left
+    · intro h; exact ⟨h, trivial⟩
+
+def And.associative (P Q R: Prop): P ∧ Q ∧ R ↔ (P ∧ Q) ∧ R := by
+  constructor
+  intro ⟨p, q, r⟩
+  exact ⟨⟨p, q⟩, r⟩
+  intro ⟨⟨p, q⟩, r⟩
+  exact ⟨p, q, r⟩
 
 theorem Set.inter_assoc: Associative (@Set.inter α) := by
-  intro A B C
-  funext x
+  intro _ _ _
+  funext
   simp [Set.inter]
-  constructor
-  · intro ⟨⟨ha, hb⟩, hc⟩
-    exact ⟨ha, ⟨hb, hc⟩⟩
-  · intro ⟨ha, ⟨hb, hc⟩⟩
-    exact ⟨⟨ha, hb⟩, hc⟩
+  apply Iff.symm
+  apply And.associative
 
 theorem Set.inter_comm: Commutative (@Set.inter α) := by
   intro A B

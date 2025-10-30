@@ -19,6 +19,7 @@ theorem add_negative_right [Group G] (a: G): a + -a = 0 := by
 
 -- In a group we can define integer multiplication via
 -- 0 * a = 0, 1 * a = a, 2 * a = a + a, ... and -1 * a = 1 * -a, -2 * a = 2 * (-a), ...
+
 def Group.smul [Group G] (k: Int) (a: G): G :=
   match k with
   | Int.ofNat n => n • a
@@ -41,8 +42,20 @@ theorem add_cancel_left [Group G] {a b c: G} (h: a + b = a + c): b = c := by
 theorem add_cancel_right [Group G] {a b c: G} (h: a + c = b + c): a = b := by
   sorry
 
--- todo: show the set of permutations on a set form a group
+def Permutation (α: Type u): Set (α → α) :=
+  λ f ↦ Function.invertible f
 
+noncomputable instance PermutationGroup (α: Type u): Group (Permutation α) := {
+  add := λ f g ↦ ⟨g.val ∘ f.val, Function.invertible_comp f.property g.property⟩
+  zero := ⟨id, Function.invertible_id⟩
+  add_identity := by constructor <;> (intro; rfl)
+  add_associative := by intro _ _ _; rfl
+  neg := λ f ↦ ⟨f.property.choose, ⟨f, f.property.choose_spec.2, f.property.choose_spec.1⟩⟩
+  add_inverse := by
+    constructor <;> (intro ⟨f, hf⟩; simp; congr)
+    exact hf.choose_spec.right
+    exact hf.choose_spec.left
+}
 
 class CommutativeGroup (G: Type u) extends Group G, CommutativeMagma G
 
@@ -75,6 +88,68 @@ theorem Group.self_bijective [Group G] (a: G): Function.Bijective (λ b ↦ a + 
   sorry
 
 
+
+-- A group hom needs also to preserve inv
+class GroupHom [Group α] [Group β] (f: α → β): Prop extends MagmaHom f, PointedSetHom f where
+  inv_preserving: ∀ a, f (-a) = -(f a)
+
+theorem GroupHom.id [Group α]: GroupHom (@id α) := {
+  add_preserving := MagmaHom.id.add_preserving
+  zero_preserving := PointedSetHom.id.zero_preserving
+  inv_preserving := by intro; rfl
+}
+
+theorem GroupHom.comp [Group α] [Group β] [Group γ] {f: α → β} {g: β → γ} (hf: GroupHom f) (hg: GroupHom g): GroupHom (g ∘ f) := {
+  add_preserving := (MagmaHom.comp hf.toMagmaHom hg.toMagmaHom).add_preserving
+  zero_preserving := (PointedSetHom.comp hf.toPointedSetHom hg.toPointedSetHom).zero_preserving
+  inv_preserving := by intro; simp [hf.inv_preserving, hg.inv_preserving]
+}
+
+def Group.element_map {α: Type u} [Group α] (a: α): (α → α) :=
+  λ x ↦ x + a
+
+theorem Group.element_map_invertible {α: Type u} [Group α] (a: α): Function.invertible (Group.element_map a) := by
+  exists λ x ↦ x + -a
+  constructor <;> (
+    ext
+    simp [
+      element_map,
+      add_associative,
+      add_negative_left,
+      add_negative_right,
+      add_zero_right,
+      Function.id
+    ]
+  )
+
+def Group.element_permutation (α: Type u) [Group α]: α → Permutation α :=
+  λ a ↦ ⟨element_map a, element_map_invertible a⟩
+
+def Group.element_permutation_injective (α: Type u) [Group α]: Function.Injective (Group.element_permutation α) := by
+  sorry
+
+theorem GroupHom.element_permutation_hom (α: Type u) [Group α]:
+  GroupHom (Group.element_permutation α) := {
+    add_preserving := by
+      intros
+      simp [Group.element_permutation]
+      congr
+      ext
+      simp [Group.element_map]
+      rw [add_associative]
+    zero_preserving := by
+      intros
+      simp [Group.element_permutation]
+      congr
+      ext
+      simp [Group.element_map]
+      rw [add_zero_right]
+    inv_preserving := by
+      sorry
+      -- intro a
+      -- obtain ⟨a', ha'⟩ := Group.element_map_invertible a
+      -- ext x
+  }
 
 
 -- TODO: same for unital magma, we might want 2 fields for left/right inverse...

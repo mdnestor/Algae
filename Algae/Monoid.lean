@@ -56,6 +56,18 @@ theorem UnitalMagma.smul_one [UnitalMagma M] (a: M): 1 • a = a := by
 theorem UnitalMagma.npow_two [UnitalMagma M] (a: M): 2 • a = a + a := by
   rw [smul_succ, smul_one]
 
+class UnitalMagmaHom [UnitalMagma α] [UnitalMagma β] (f: α → β): Prop extends MagmaHom f, PointedSetHom f
+
+
+
+class SubUnitalMagma [UnitalMagma α] (S: Set α) extends SubPointedSet S, SubMagma S
+
+def SubUnitalMama.kernel [UnitalMagma β] (f: α → β): Set α :=
+  PointedSet.kernel f
+
+
+
+
 class Monoid (M: Type u) extends UnitalMagma M, AssociativeMagma M
 
 theorem inverses_unique [Monoid M] {a b b': M}
@@ -69,7 +81,7 @@ theorem inverses_unique [Monoid M] {a b b': M}
     _ = b'           := by rw [add_zero_left]
 
 -- On any type X the set of functions X → X is a monoid.
-def Endomonoid (M : Type u) : Monoid (M → M) := {
+def Endomonoid (M: Type u): Monoid (M → M) := {
   add := λ f g ↦ g ∘ f
   zero := Function.id
   add_identity := by constructor <;> exact congrFun rfl
@@ -86,7 +98,7 @@ def FreeMonoid (M : Type u) : Monoid (List M) := {
 
 class CommutativeMonoid (M : Type u) extends Monoid M, CommutativeMagma M
 
-example (M : Type u) : CommutativeMonoid (Set M) := {
+example (M: Type u): CommutativeMonoid (Set M) := {
   add := Set.union
   zero := Set.empty M
   add_identity := by exact Set.union_identity
@@ -94,7 +106,7 @@ example (M : Type u) : CommutativeMonoid (Set M) := {
   add_commutative := by exact Set.union_comm
 }
 
-example (M : Type u) : CommutativeMonoid (Set M) := {
+example (M: Type u): CommutativeMonoid (Set M) := {
   add := Set.inter
   zero := Set.full M
   add_identity := by exact Set.inter_identity
@@ -125,7 +137,6 @@ example: CommutativeMonoid Nat := {
 --   associative := sorry
 --   commutative := sorry
 -- }
-
 
 class UnitalMulMagma (M : Type u) extends MulMagma M, PointedMulSet M where
   identity: Identity mul 1
