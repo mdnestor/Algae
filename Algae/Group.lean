@@ -17,6 +17,29 @@ theorem add_negative_left [Group G] (a: G): -a + a = 0 := by
 theorem add_negative_right [Group G] (a: G): a + -a = 0 := by
   exact Group.add_inverse.right a
 
+--theorem neg_unique [Group G] -- oh um i don't know how the inhertiance you do it
+-- wdym ?
+-- i mean neg is just inverse
+-- this is just inverse unique ?
+-- why did you bring it up then what
+-- 0 + 0 = 0
+-- 0 + -0 = 0
+
+-- do we even need unique like
+-- can't we just um
+-- a + 0 = b => a = b ?
+-- oh ok equivalent?
+
+theorem neg_zero [Group G]: (0: G) = -(0: G) := by
+  have h1: UnitalMagma.inverses (0: G) (0: G) := by
+    constructor
+    repeat exact add_zero_left 0
+  have h2: UnitalMagma.inverses (0: G) (-0: G) := by
+    constructor
+    exact add_negative_right 0
+    exact add_negative_left 0
+  exact inverses_unique h1 h2
+
 -- In a group we can define integer multiplication via
 -- 0 * a = 0, 1 * a = a, 2 * a = a + a, ... and -1 * a = 1 * -a, -2 * a = 2 * (-a), ...
 
@@ -89,20 +112,25 @@ theorem Group.self_bijective [Group G] (a: G): Function.Bijective (λ b ↦ a + 
 
 
 
--- A group hom needs also to preserve inv
-class GroupHom [Group α] [Group β] (f: α → β): Prop extends MagmaHom f, PointedSetHom f where
-  inv_preserving: ∀ a, f (-a) = -(f a)
 
+
+
+
+-- A group hom needs also to preserve inv
+class GroupHom [Group α] [Group β] (f: α → β): Prop extends UnitalMagmaHom f where
+  neg_preserving: ∀ a, f (-a) = -(f a)
+
+-- todo: simplify these using unital magma home xtension
 theorem GroupHom.id [Group α]: GroupHom (@id α) := {
   add_preserving := MagmaHom.id.add_preserving
   zero_preserving := PointedSetHom.id.zero_preserving
-  inv_preserving := by intro; rfl
+  neg_preserving := by intro; rfl
 }
 
 theorem GroupHom.comp [Group α] [Group β] [Group γ] {f: α → β} {g: β → γ} (hf: GroupHom f) (hg: GroupHom g): GroupHom (g ∘ f) := {
   add_preserving := (MagmaHom.comp hf.toMagmaHom hg.toMagmaHom).add_preserving
   zero_preserving := (PointedSetHom.comp hf.toPointedSetHom hg.toPointedSetHom).zero_preserving
-  inv_preserving := by intro; simp [hf.inv_preserving, hg.inv_preserving]
+  neg_preserving := by intro; simp [hf.neg_preserving, hg.neg_preserving]
 }
 
 def Group.element_map {α: Type u} [Group α] (a: α): (α → α) :=
@@ -144,12 +172,33 @@ theorem GroupHom.element_permutation_hom (α: Type u) [Group α]:
       ext
       simp [Group.element_map]
       rw [add_zero_right]
-    inv_preserving := by
+    neg_preserving := by
       sorry
       -- intro a
       -- obtain ⟨a', ha'⟩ := Group.element_map_invertible a
       -- ext x
   }
+
+-- new theorem?
+
+class Subgroup [Group α] (S: Set α): Prop extends SubMagma S, SubPointedSet S where
+  neg_closed: ∀ a: α, a ∈ S → -a ∈ S
+
+theorem kernel_subgroup [Group α] [Group β] (f: α → β) (hf: GroupHom f):
+  Subgroup (kernel f) := {
+  zero_mem := (SubPointedSet.kernel hf.toPointedSetHom).zero_mem
+  add_closed := (SubUnitalMagma.kernel_sub hf.toUnitalMagmaHom).add_closed
+  neg_closed := by
+    intro a h
+    calc
+      f (-a)
+      _ = -f a := by rw [hf.neg_preserving]
+      _ = -0   := by rw [h]
+      _ = 0    := by rw [←neg_zero]
+}
+
+-- i am going to get water brb :) its dark in the kithcen.. i am eating an apple
+-- sorry continue what you were doing
 
 
 -- TODO: same for unital magma, we might want 2 fields for left/right inverse...

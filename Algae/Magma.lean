@@ -32,6 +32,8 @@ theorem MagmaHom.comp [Magma α] [Magma β] [Magma γ] {f: α → β} {g: β →
 
 
 
+
+
 class SubMagma [Magma M] (S: Set M): Prop where
   add_closed: ∀ a b, a ∈ S → b ∈ S → a + b ∈ S
 
@@ -49,6 +51,21 @@ theorem SubMagma.inter [Magma M] {A B: Set M} (hA: SubMagma A) (hB: SubMagma B):
   exact hB.add_closed _ _ (Set.inter_right ha) (Set.inter_right hb)
 
 
+-- The center is the set of elements
+-- that commute with every other element
+def Center (M: Type u) [Magma M]: Set M :=
+  λ z ↦ ∀ m, z + m = m + z
+
+theorem center_submagma [AssociativeMagma M]: SubMagma (Center M) := by
+  constructor
+  intro x y hx hy m
+  calc
+    x + y + m
+    _ = x + (y + m) := by rw [add_associative]
+    _ = x + (m + y) := by rw [hy]
+    _ = x + m + y := by rw [add_associative]
+    _ = m + x + y := by rw [hx]
+    _ = m + (x + y) := by rw [add_associative]
 
 class MulMagma (M: Type u) extends Mul M
 

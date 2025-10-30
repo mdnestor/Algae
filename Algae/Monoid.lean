@@ -62,11 +62,26 @@ class UnitalMagmaHom [UnitalMagma α] [UnitalMagma β] (f: α → β): Prop exte
 
 class SubUnitalMagma [UnitalMagma α] (S: Set α) extends SubPointedSet S, SubMagma S
 
-def SubUnitalMama.kernel [UnitalMagma β] (f: α → β): Set α :=
-  PointedSet.kernel f
+theorem SubUnitalMagma.singleton [UnitalMagma α]: SubUnitalMagma (Set.singleton (0: α)) := {
+  zero_mem := rfl
+  add_closed := by
+    intro a b ha hb
+    calc
+      a + b
+      _ = 0 + 0 := by rw [ha, hb]
+      _ = 0 := by rw [add_zero_left]
+}
 
-
-
+def SubUnitalMagma.kernel_sub [UnitalMagma α] [UnitalMagma β] {f: α → β} (hf: UnitalMagmaHom f): SubUnitalMagma (kernel f) := {
+  zero_mem := hf.zero_preserving
+  add_closed := by
+    intro a b ha hb
+    calc
+      f (a + b)
+      = f a + f b := by rw [hf.add_preserving]
+      _ = 0 + 0 := by rw [ha, hb]
+      _ = 0 := by rw [add_zero_left]
+}
 
 class Monoid (M: Type u) extends UnitalMagma M, AssociativeMagma M
 
