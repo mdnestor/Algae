@@ -1,5 +1,5 @@
-import Algae.Structure
 import Algae.Morphism
+import Algae.Subobject
 
 variable {α: Type u} {β: Type v}
 
@@ -14,7 +14,7 @@ theorem Kernel.submonoid [Monoid α] [Monoid β] {f: α → β} (hf: MonoidHom f
       f (op x y)
       _ = op (f x) (f y) := by rw [hf.op_preserving]
       _ = op unit unit := by rw [hx, hy]
-      _ = unit := by rw [id_left]
+      _ = unit := by rw [Monoid.identity.left]
 }
 
 theorem Kernel.subgroup [Group α] [Group β] {f: α → β} (hf: GroupHom f): Subgroup (Kernel f) := {

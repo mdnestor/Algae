@@ -7,18 +7,18 @@ class Magma (α: Type u) where
 
 export Magma (op)
 
-instance [Magma α]: Mul α := {
-  mul := op
-}
-
 instance [Magma α]: Add α := {
   add := op
 }
 
-theorem mul_eq [Magma α] (a b: α): a * b = op a b := by
-  rfl
+instance [Magma α]: Mul α := {
+  mul := op
+}
 
 theorem add_eq [Magma α] (a b: α): a + b = op a b := by
+  rfl
+
+theorem mul_eq [Magma α] (a b: α): a * b = op a b := by
   rfl
 
 class CommMagma (α: Type u) extends Magma α where

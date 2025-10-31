@@ -31,17 +31,11 @@ theorem mul_one_left [Monoid α] (a: α): 1 * a = a := by
 theorem mul_one_right [Monoid α] (a: α): a * 1 = a := by
   apply add_zero_right
 
+def inverses [Monoid α] (a b: α): Prop :=
+  Inverses op a b unit
 
-
-def Monoid.inverses [Monoid M] (a b: M): Prop :=
-  Inverses Add.add a b 0
-
-def Monoid.inverses_iff [Monoid M] (a b: M):
-  inverses a b ↔ a + b = 0 ∧ b + a = 0 := by
+def inverses_iff [Monoid M] (a b: M): inverses a b ↔ a + b = 0 ∧ b + a = 0 := by
   rfl
-
-
-
 
 def Monoid.nmul [Monoid α] (n: Nat) (a: α): α :=
   match n with
@@ -53,47 +47,47 @@ instance [Monoid α]: SMul Nat α := {
 }
 
 -- Simple theorems about npow.
-theorem Monoid.nmul_zero (M: Monoid α) (a: α): 0 • a = (0: α) := by
+theorem nmul_zero [Monoid α] (a: α): 0 • a = (0: α) := by
   rfl
 
-theorem Monoid.nmul_succ (M: Monoid α) (a: α) (n: Nat): (n + 1) • a = (n • a) * a := by
+theorem nmul_succ [Monoid α] (a: α) (n: Nat): (n + 1) • a = (n • a) + a := by
   rfl
 
-theorem Monoid.nmul_one (M: Monoid α) (a: α): 1 • a = a := by
-  rw [nmul_succ, nmul_zero, mul_eq, zero_eq]
-  sorry
+theorem nmul_one [Monoid α] (a: α): 1 • a = a := by
+  rw [nmul_succ, nmul_zero, add_zero_left]
 
-theorem Monoid.nmul_two (M: Monoid α) (a: α): 2 • a = a * a := by
+theorem nmul_two [Monoid α] (a: α): 2 • a = a + a := by
   rw [nmul_succ, nmul_one]
 
+theorem nmul_add [Monoid α] (a: α) (m n: Nat): m • a + n • a = (m + n) • a := by
+  induction n with
+  | zero => rw [nmul_zero, add_zero_right, Nat.add_zero]
+  | succ _ hp => rw [nmul_succ, ←add_assoc, hp, ←Nat.add_assoc, nmul_succ]
 
-
-def Monoid.npow [Monoid α] (a: α) (n: Nat): α :=
+def npow [Monoid α] (a: α) (n: Nat): α :=
   match n with
   | Nat.zero => 1
   | Nat.succ p => npow a p * a
 
 instance [Monoid α]: HPow α Nat α := {
-  hPow := Monoid.npow
+  hPow := npow
 }
 
-theorem Monoid.npow_zero (M: Monoid α) (a: α): a ^ 0 = (1: α) := by
-  apply Monoid.nmul_zero; exact a
+theorem npow_zero [Monoid α] (a: α): a ^ 0 = (1: α) := by
+  apply nmul_zero; exact a
 
-theorem Monoid.npow_succ (M: Monoid α) (a: α) (n: Nat): a ^ (n + 1) = a^n * a := by
+theorem npow_succ [Monoid α] (a: α) (n: Nat): a ^ (n + 1) = a^n * a := by
   sorry
 
-theorem Monoid.npow_one (M: Monoid α) (a: α): a^1 = a := by
-  apply Monoid.nmul_one
+theorem npow_one [Monoid α] (a: α): a^1 = a := by
+  apply nmul_one
 
-theorem Monoid.npow_two (M: Monoid α) (a: α): a^2 = a * a := by
-  apply Monoid.nmul_two
-
-
+theorem npow_two [Monoid α] (a: α): a^2 = a * a := by
+  apply nmul_two
 
 theorem inverses_unique [Monoid M] {a b b': M}
-  (h: Monoid.inverses a b) (h': Monoid.inverses a b'): b = b' := by
-  simp_all [Monoid.inverses_iff]
+  (h: inverses a b) (h': inverses a b'): b = b' := by
+  simp_all [inverses_iff]
   calc
     b = b + 0        := by rw [add_zero_right]
     _ = b + (a + b') := by rw [h'.left]

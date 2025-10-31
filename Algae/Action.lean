@@ -1,4 +1,4 @@
-import Algae.Structure
+import Algae.Monoid
 
 variable {α: Type u} {X: Type v}
 

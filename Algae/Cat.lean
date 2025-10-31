@@ -301,6 +301,5 @@ noncomputable def Groupoid.autogroup {C: Groupoid} (x: obj): Group (hom x x) := 
   identity := ⟨C.id_left, C.id_right⟩
   assoc := C.associative
   inv := C.inv
-  inv_left := C.inv_left
-  inv_right := C.inv_right
+  inverse := ⟨C.inv_left, C.inv_right⟩
 }

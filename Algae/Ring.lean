@@ -30,6 +30,7 @@ instance [Ring α]: Add α := {
 instance [Ring α]: Mul α := {
   mul := Ring.mul
 }
+
 instance [Ring α]: Zero α := {
   zero := Ring.add_struct.unit
 }

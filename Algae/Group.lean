@@ -23,7 +23,7 @@ theorem neg_eq [Group α] (a: α): -a = inv a := by
   rfl
 
 theorem inv_eq [Group α] (a: α): a⁻¹ = inv a := by
-  rfl
+  apply neg_eq
 
 theorem add_neg_left [Group α] (a: α): -a + a = 0 := by
   exact Group.inverse.left a
@@ -52,71 +52,66 @@ instance [Group G]: Sub G := {
 -- theorem add_neg_right [Group G] (a: G): a + -a = 0 := by
 --   exact Group.add_neg.right a
 
---theorem neg_unique [Group G] -- oh um i don't know how the inhertiance you do it
--- wdym ?
--- i mean neg is just inverse
--- this is just inverse unique ?
--- why did you bring it up then what
--- 0 + 0 = 0
--- 0 + -0 = 0
 
--- do we even need unique like
--- can't we just um
--- a + 0 = b => a = b ?
--- oh ok equivalent?
-
-theorem neg_zero [Group G]: (0: G) = -(0: G) := by
-  have h1: Monoid.inverses (0: G) (0: G) := by
+theorem inv_unit [Group G]: inv (unit: G) = unit := by
+  have h1: inverses (unit: G) (unit: G) := by
     constructor
     repeat exact add_zero_left 0
-  have h2: Monoid.inverses (0: G) (-0: G) := by
+  have h2: inverses (unit: G) (inv unit: G) := by
     constructor
     exact add_neg_right 0
     exact add_neg_left 0
-  exact inverses_unique h1 h2
+  exact inverses_unique h2 h1
+
+theorem neg_zero [Group G]: -(0: G) = 0 := by
+  apply inv_unit
+
+theorem inv_one [Group G]: (1: G)⁻¹ = 1 := by
+  apply inv_unit
 
 -- In a group we can define integer multiplication via
 -- 0 * a = 0, 1 * a = a, 2 * a = a + a, ... and -1 * a = 1 * -a, -2 * a = 2 * (-a), ...
 
-def Group.smul [Group G] (k: Int) (a: G): G :=
+def zmul [Group G] (k: Int) (a: G): G :=
   match k with
   | Int.ofNat n => n • a
   | Int.negSucc n => n • -a
 
 instance [Group G]: SMul Int G := {
-  smul := Group.smul
+  smul := zmul
 }
 
-theorem add_cancel_left [Group G] {a b c: G} (h: a + b = a + c): b = c := by
+theorem zmul_add [Group α] (a: α) (m n: Int): m • a + n • a = (m + n) • a := by
+  induction m with
+  | ofNat p => sorry
+  | negSucc p => sorry
+
+theorem zmul_neg [Group α] (a: α) (n: Int): n • (-a) = -n • a := by
+  induction n with
+  | ofNat p => sorry
+  | negSucc p => sorry
+
+theorem zmul_neg' [Group α] (a: α) (n: Int): n • (-a) = -(n • a) := by
+  sorry
+
+theorem op_cancel_left [Group G] {a b c: G} (h: op a b = op a c): b = c := by
   calc b
     _ = 0 + b        := by rw [add_zero_left]
     _ = -a + a + b   := by rw [add_neg_left]
     _ = -a + (a + b) := by rw [add_assoc]
-    _ = -a + (a + c) := by rw [h]
+    _ = -a + (a + c) := by (repeat rw [add_eq]); rw [h]
     _ = -a + a + c   := by rw [add_assoc]
     _ = 0 + c        := by rw [add_neg_left]
     _ = c            := by rw [add_zero_left]
 
+theorem add_cancel_left [Group G] {a b c: G} (h: a + b = a + c): b = c := by
+  apply op_cancel_left h
+
+theorem mul_cancel_left [Group G] {a b c: G} (h: a * b = a * c): b = c := by
+  apply op_cancel_left h
+
 theorem add_cancel_right [Group G] {a b c: G} (h: a + c = b + c): a = b := by
   sorry
-
-def Permutation (α: Type u): Set (α → α) :=
-  λ f ↦ Function.invertible f
-
-
--- noncomputable instance PermutationGroup (α: Type u): Group (Permutation α) := {
---   add := λ f g ↦ ⟨g.val ∘ f.val, Function.invertible_comp f.property g.property⟩
---   zero := ⟨id, Function.invertible_id⟩
---   add_zero := by constructor <;> (intro; rfl)
---   add_assoc := by intro _ _ _; rfl
---   neg := λ f ↦ ⟨f.property.choose, ⟨f, f.property.choose_spec.2, f.property.choose_spec.1⟩⟩
---   add_neg := by
---     constructor <;> (intro ⟨f, hf⟩; simp; congr)
---     exact hf.choose_spec.right
---     exact hf.choose_spec.left
--- }
-
---class CommGroup (G: Type u) extends Group G, CommMonoid G
 
 -- Sanity check to make sure everything works.
 theorem square_self_zero [Group G] {a: G} (h: 2 • a = a): a = 0 := by
