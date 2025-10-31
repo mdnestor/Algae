@@ -17,7 +17,7 @@ example [Monoid α]: Action α α := {
   act_assoc := by
     intro a b c
     exact Eq.symm (Monoid.assoc a b c)
-  act_id := id_left
+  act_id := Monoid.identity.left
 }
 
 -- Given an action of M on X, the orbit of x₀
