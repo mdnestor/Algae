@@ -9,13 +9,19 @@ class Monoid (α: Type u) extends Pointed α, Magma α where
   identity: Identity op unit
   assoc: Associative op
 
+theorem op_unit_left [Monoid α] (a: α): op unit a = a := by
+  exact Monoid.identity.left a
+
+theorem op_unit_right [Monoid α] (a: α): op a unit = a := by
+  exact Monoid.identity.right a
+
 
 
 theorem add_zero_left [Monoid A] (a: A): 0 + a = a := by
-  exact Monoid.identity.left a
+  apply op_unit_left
 
 theorem add_zero_right [Monoid M] (a: M): a + 0 = a := by
-  exact Monoid.identity.right a
+  apply op_unit_right
 
 theorem add_assoc [Monoid M] (a b c: M): a + b + c = a + (b + c) := by
   exact Monoid.assoc a b c
@@ -47,6 +53,10 @@ instance [Monoid α]: SMul Nat α := {
 }
 
 -- Simple theorems about npow.
+theorem nmul_zero' [Monoid α] (a: α): 0 • a = unit := by
+  rfl
+
+
 theorem nmul_zero [Monoid α] (a: α): 0 • a = (0: α) := by
   rfl
 
@@ -64,6 +74,13 @@ theorem nmul_add [Monoid α] (a: α) (m n: Nat): m • a + n • a = (m + n) •
   | zero => rw [nmul_zero, add_zero_right, Nat.add_zero]
   | succ _ hp => rw [nmul_succ, ←add_assoc, hp, ←Nat.add_assoc, nmul_succ]
 
+theorem nmul_succ' [Monoid α] (a: α) (n: Nat): (n + 1) • a = a + (n • a) := by
+  calc
+    (n + 1) • a
+    _ = (1 + n) • a := by rw [Nat.add_comm]
+    _ = 1 • a + n • a := by rw [nmul_add]
+    _ = a + n • a := by rw [nmul_one]
+
 def npow [Monoid α] (a: α) (n: Nat): α :=
   match n with
   | Nat.zero => 1
@@ -77,7 +94,7 @@ theorem npow_zero [Monoid α] (a: α): a ^ 0 = (1: α) := by
   apply nmul_zero; exact a
 
 theorem npow_succ [Monoid α] (a: α) (n: Nat): a ^ (n + 1) = a^n * a := by
-  sorry
+  rfl
 
 theorem npow_one [Monoid α] (a: α): a^1 = a := by
   apply nmul_one
@@ -94,6 +111,24 @@ theorem inverses_unique [Monoid M] {a b b': M}
     _ = (b + a) + b' := by rw [add_assoc]
     _ = 0 + b'       := by rw [h.right]
     _ = b'           := by rw [add_zero_left]
+
+macro "to_generic": tactic =>
+  `(tactic| try simp [add_eq, zero_eq, mul_eq, one_eq])
+
+macro "to_additive": tactic =>
+  `(tactic| (to_generic; simp [←add_eq, ←zero_eq]))
+
+macro "to_multiplicative": tactic =>
+  `(tactic| (to_generic; simp [←mul_eq, ←one_eq]))
+
+theorem left_right_inverse_eq [Monoid α] {a b c: α}
+  (h₁: op a b = unit) (h₂: op b c = unit): a = c := by
+  calc
+    a = a + 0        := by rw [add_zero_right]
+    _ = a + (b + c) := by to_generic; rw [h₂]
+    _ = (a + b) + c := by rw [add_assoc]
+    _ = 0 + c       := by to_generic; rw [h₁]
+    _ = c           := by rw [add_zero_left]
 
 -- On any type X the set of functions X → X is a monoid.
 def Endomonoid (M: Type u): Monoid (M → M) := {
