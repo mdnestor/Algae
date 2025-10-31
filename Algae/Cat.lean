@@ -39,18 +39,18 @@ def Monoid.toCat {α: Type u} (M: Monoid α): Cat := {
   obj := Unit
   hom := λ _ _ ↦ α
   id := 0
-  comp := M.add
-  id_left := M.add_identity.left
-  id_right := M.add_identity.right
-  associative := M.add_associative
+  comp := M.op
+  id_left := M.identity.left
+  id_right := M.identity.right
+  associative := M.assoc
 }
 
 -- The monoid of endomorphisms on an object.
 def Cat.endomonoid {C: Cat} (x: obj): Monoid (hom x x) := {
-  add := C.comp
-  zero := id
-  add_identity := ⟨C.id_left, C.id_right⟩
-  add_associative := C.associative
+  op := C.comp
+  unit := id
+  identity := ⟨C.id_left, C.id_right⟩
+  assoc := C.associative
 }
 
 def opposite (C: Cat): Cat := {
@@ -174,10 +174,10 @@ theorem epi_if {C: Cat} {x y: obj} {f: hom x y} (g: hom y x) (h: comp g f = id):
   exact mono_if _ h
 
 
-theorem set_mono {x y: Set.obj} {f: Set.hom x y}: IsMono f ↔ Function.Injective f := by
+theorem set_mono {x y: Sets.obj} {f: Sets.hom x y}: IsMono f ↔ Function.Injective f := by
   sorry
 
-theorem set_epi {x y: Set.obj} {f: Set.hom x y}: IsEpi f ↔ Function.Surjective f := by
+theorem set_epi {x y: Sets.obj} {f: Sets.hom x y}: IsEpi f ↔ Function.Surjective f := by
   sorry
 
 def Product (C D: Cat): Cat := {
@@ -221,7 +221,7 @@ def Powerset (X: Type u): Type u :=
 -- endofunction f: X → X
 -- Powerset: (Type u) → (Type u)
 -- okay
-example : Functor Set.{u} Set.{u} := {
+example : Functor Sets.{u} Sets.{u} := {
   obj := Powerset
   hom := Set.image
   id_preserve := sorry
@@ -296,10 +296,11 @@ class Groupoid extends PreGroupoid where
     comp f f⁻¹ = id
 
 noncomputable def Groupoid.autogroup {C: Groupoid} (x: obj): Group (hom x x) := {
-  add := C.comp
-  zero := id
-  add_identity := ⟨C.id_left, C.id_right⟩
-  add_associative := C.associative
-  neg := C.inv
-  add_inverse := ⟨C.inv_left, C.inv_right⟩
+  op := C.comp
+  unit := id
+  identity := ⟨C.id_left, C.id_right⟩
+  assoc := C.associative
+  inv := C.inv
+  inv_left := C.inv_left
+  inv_right := C.inv_right
 }

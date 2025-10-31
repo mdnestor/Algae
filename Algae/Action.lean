@@ -1,43 +1,31 @@
-import Algae.Monoid
+import Algae.Structure
 
-variable {M: Type u} {X: Type v}
+variable {α: Type u} {X: Type v}
 
+class Action (α: Type u) (X: Type v) extends Monoid α where
+  act: α → X → X
+  act_assoc: ∀ (a b: α) (x: X), act a (act b x) = act (op a b) x
+  act_id: ∀ (x: X), act unit x = x
 
-
-class Action (M: Type u) (X: Type v) extends MulMagma M, SMul M X where
-  smul_associative: ∀ (a b: M) (x: X), a • (b • x) = (a * b) • x
-
-theorem smul_associative [Action M X]: ∀ (a b: M) (x: X), a • (b • x) = (a * b) • x := by
-  exact Action.smul_associative
-
-class UnitalAction (M: Type u) (X: Type v) extends UnitalMulMagma M, Action M X where
-  smul_identity: ∀ (x: X), (1: M) • x = x
-
-theorem smul_identity [UnitalAction M X]: ∀ (x: X), (1: M) • x = x := by
-  exact UnitalAction.smul_identity
-
-
--- Every associative magma has an action on itself.
-def AssociativeMulMagma.self_action [AssociativeMulMagma M]: Action M M := {
-  smul := Mul.mul
-  smul_associative := by
-    intro a b x
-    exact Eq.symm (mul_associative a b x)
+instance [Action α X]: SMul α X := {
+  smul := Action.act
 }
 
 -- Every monoid has a unital action on itself.
-example [MulMonoid M]: UnitalAction M M := {
-  smul := Mul.mul
-  smul_associative := AssociativeMulMagma.self_action.smul_associative
-  smul_identity := UnitalMulMagma.identity.left
+example [Monoid α]: Action α α := {
+  act := op
+  act_assoc := by
+    intro a b c
+    exact Eq.symm (Monoid.assoc a b c)
+  act_id := id_left
 }
 
 -- Given an action of M on X, the orbit of x₀
 -- is the set of all x reachable by some action.
-def Orbit [Action M X] (x₀: X): Set X :=
-  λ x ↦ ∃ a: M, a • x₀ = x
+def Orbit [Action α X] (x₀: X): Set X :=
+  λ x ↦ ∃ a: α, a • x₀ = x
 
 -- Given an action of M on X, the stabilizer of x
 -- is the set of a in M which fix x.
-def Stabilizer [Action M X] (x: X): Set M :=
+def Stabilizer [Action α X] (x: X): Set α :=
   λ a ↦ a • x = x

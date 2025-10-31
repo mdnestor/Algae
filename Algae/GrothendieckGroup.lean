@@ -18,7 +18,7 @@ instance(α: Type u) [Add α]: HasEquiv (α × α) := {
   Equiv := relation α
 }
 
-theorem equivalence [CommutativeMonoid α]: Equivalence (relation α) := {
+theorem equivalence [CommMonoid α]: Equivalence (relation α) := {
   refl := by
     intro
     exists 0
@@ -36,12 +36,12 @@ theorem equivalence [CommutativeMonoid α]: Equivalence (relation α) := {
       _ = z₁ + x₂ + (y₁ + y₂ + k₁ + k₂) := by sorry
 }
 
-def setoid (α: Type u) [CommutativeMonoid α]: Setoid (α × α) := {
+def setoid (α: Type u) [CommMonoid α]: Setoid (α × α) := {
   r := relation α
   iseqv := equivalence
 }
 
-def quotient (α: Type u) [CommutativeMonoid α]: Type u :=
+def quotient (α: Type u) [CommMonoid α]: Type u :=
   Quotient (setoid α)
 
 -- Part 2: lift the addition operation to the quotient.
@@ -50,7 +50,7 @@ instance (α: Type u) [Zero α]: Zero (α × α) := {
   zero := (0, 0)
 }
 
-instance [CommutativeMonoid α]: Zero (quotient α) := {
+instance [CommMonoid α]: Zero (quotient α) := {
   zero := Quotient.mk _ 0
 }
 
@@ -58,7 +58,7 @@ instance (α: Type u) [Add α]: Add (α × α) := {
   add := fun (x₁, x₂) (y₁, y₂) => (x₁ + y₁, x₂ + y₂)
 }
 
-theorem quotient_add [CommutativeMonoid α] (a b c d: α × α) (h₁: a ≈ c) (h₂: b ≈ d):
+theorem quotient_add [CommMonoid α] (a b c d: α × α) (h₁: a ≈ c) (h₂: b ≈ d):
   Quotient.mk (setoid α) (a + b) = Quotient.mk (setoid α) (c + d) := by
   apply Quotient.sound
   obtain ⟨k₁, hk₁⟩ := h₁
@@ -70,22 +70,22 @@ theorem quotient_add [CommutativeMonoid α] (a b c d: α × α) (h₁: a ≈ c) 
     _ = (c.fst + a.snd + k₁) + (d.fst + b.snd + k₂) := by rw [hk₁, hk₂]
     _ = c.fst + d.fst + (a.snd + b.snd) + (k₁ + k₂) := by sorry
 
-instance [CommutativeMonoid α]: Add (quotient α) := {
+instance [CommMonoid α]: Add (quotient α) := {
   add := λ x y ↦ Quotient.liftOn₂ x y _ quotient_add
 }
 
-theorem quotient_neg [CommutativeMonoid α] (a b: α × α) (h: a ≈ b):
+theorem quotient_neg [CommMonoid α] (a b: α × α) (h: a ≈ b):
   Quotient.mk (setoid α) (Prod.swap a) = Quotient.mk (setoid α) (Prod.swap b) := by
   apply Quotient.sound
   obtain ⟨k, hk⟩ := h
   exists k
   calc
     a.snd + b.fst + k
-    _ = b.fst + a.snd + k := by rw [add_commutative a.snd]
+    _ = b.fst + a.snd + k := by rw [add_comm a.snd]
     _ = a.fst + b.snd + k := by rw [hk]
-    _ = b.snd + a.fst + k := by rw [add_commutative a.fst]
+    _ = b.snd + a.fst + k := by rw [add_comm a.fst]
 
-instance [CommutativeMonoid α]: Neg (quotient α) := {
+instance [CommMonoid α]: Neg (quotient α) := {
   neg := λ x ↦ Quotient.liftOn x _ quotient_neg
 }
 
@@ -93,15 +93,18 @@ instance [CommutativeMonoid α]: Neg (quotient α) := {
 -- The add, zero, and neg instances are automatically inferred
 -- based on the above constructions.
 
-instance GrothendieckGroup [CommutativeMonoid α]: CommutativeGroup (quotient α) := {
-  add_associative := by
+instance GrothendieckGroup [CommMonoid α]: CommGroup (quotient α) := {
+  unit := Zero.zero
+  op := Add.add
+  inv := Neg.neg -- TODO not right
+  assoc := by
     intro x y z
     refine Quotient.inductionOn₃ x y z ?_
     intros
     apply Quotient.sound
     exists 0
-    simp [add_associative]
-  add_identity := by
+    simp [add_assoc]
+  identity := by
     constructor <;> (
       intro x
       refine Quotient.inductionOn x ?_
@@ -111,20 +114,20 @@ instance GrothendieckGroup [CommutativeMonoid α]: CommutativeGroup (quotient α
     )
     repeat rw [add_zero_left]
     repeat rw [add_zero_right]
-  add_inverse := by
+  inverse := by
     constructor <;> (
       intro x
       refine Quotient.inductionOn x ?_
       intro
       apply Quotient.sound
       exists 0
-      simp [add_commutative]
+      simp [add_comm]
     )
-  add_commutative := by
+  comm := by
     intro x y
     refine Quotient.inductionOn₂ x y ?_
     intros
     apply Quotient.sound
     exists 0
-    simp [add_commutative]
+    simp [add_comm]
 }

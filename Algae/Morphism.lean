@@ -1,47 +1,54 @@
 import Algae.SetTheory
+import Algae.Group
+import Algae.Cat
 
 variable {α: Type u} {β: Type v} {γ: Type w}
 
-def ZeroPreserving [Zero α] [Zero β] (f: α → β): Prop :=
-  f 0 = 0
+class PointedHom [Pointed α] [Pointed β] (f: α → β): Prop where
+  unit_preserving: f unit = unit
 
-theorem ZeroPreserving.id [Zero α]: ZeroPreserving (@Function.id α) := by
-  rfl
+class MagmaHom [Magma α] [Magma β] (f: α → β): Prop where
+  op_preserving: ∀ a b: α, f (op a b) = op (f a) (f b)
 
-theorem ZeroPreserving.comp [Zero α] [Zero β] [Zero γ]
-  {f: α → β} {g: β → γ} (hf: ZeroPreserving f) (hg: ZeroPreserving g):
-  ZeroPreserving (g ∘ f) := by
-  simp [ZeroPreserving]
-  rw [hf, hg]
+class MonoidHom [Monoid α] [Monoid β] (f: α → β): Prop extends PointedHom f, MagmaHom f
 
-
-
-def AddPreserving [Add α] [Add β] (f: α → β): Prop :=
-  ∀ a b, f (a + b) = f a + f b
-
-theorem AddPreserving.id [Add α]: AddPreserving (@Function.id α) := by
-  intro _ _
-  rfl
-
-theorem AddPreserving.comp [Add α] [Add β] [Add γ]
-  {f: α → β} {g: β → γ} (hf: AddPreserving f) (hg: AddPreserving g):
-  AddPreserving (g ∘ f) := by
-  intro _ _
-  simp
-  rw [hf, hg]
+class GroupHom [Group α] [Group β] (f: α → β): Prop extends MonoidHom f where
+  inv_preserving: ∀ a, f (inv a) = inv (f a)
 
 
 
-def NegPreserving [Neg α] [Neg β] (f: α → β): Prop :=
-  ∀ a, f (-a) = -(f a)
+theorem MagmaHom.id (α: Type u) [Magma α]: MagmaHom (@Function.id α) := by
+  sorry
 
-theorem NegPreserving.id [Neg α]: NegPreserving (@Function.id α) := by
-  intro _
-  rfl
+theorem MagmaHom.comp [Magma α] [Magma β] [Magma γ]
+  {f: α → β} {g: β → γ} (hf: MagmaHom f) (hg: MagmaHom g)
+  : MagmaHom (g ∘ f) := by
+  sorry
 
-theorem NegPreserving.comp [Neg α] [Neg β] [Neg γ]
-  {f: α → β} {g: β → γ} (hf: NegPreserving f) (hg: NegPreserving g):
-  NegPreserving (g ∘ f) := by
-  intro _
-  simp
-  rw [hf, hg]
+
+
+-- Example attemmpt fitting into a cat.
+
+structure MagmaObj where
+  carrier: Type u
+  magma: Magma carrier
+
+structure MagmaObjHom (M₁ M₂: MagmaObj) where
+  map: M₁.carrier → M₂.carrier
+  isHom: @MagmaHom _ _ M₁.magma M₂.magma map
+
+def MagmaObjHom.id (M: MagmaObj): MagmaObjHom M M := {
+  map := Function.id
+  isHom := @MagmaHom.id M.carrier M.magma
+}
+
+-- The category of Magmas.
+def MagmaCat: Cat.{u + 1} := {
+  obj := MagmaObj
+  hom := MagmaObjHom
+  id := @MagmaObjHom.id
+  comp := sorry
+  id_left := sorry
+  id_right := sorry
+  associative := sorry
+}

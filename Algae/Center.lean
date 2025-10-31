@@ -1,19 +1,18 @@
-import Algae.Group
+import Algae.Structure
 import Algae.Subobject
 
-variable {A: Type u}
-
+variable {α: Type u}
 
 -- The center is the set of elements
 -- that commute with every other element
-def Center (A: Type u) [Add A]: Set A :=
+def Center (α: Type u) [Magma α]: Set α :=
   λ z ↦ ∀ m, z + m = m + z
 
-theorem Center.submonoid [Monoid A]: Submonoid (Center A) := {
-  zero_mem := by
+theorem Center.submonoid [Monoid α]: Submonoid (Center α) := {
+  unit_mem := by
     intro
     rw [add_zero_left, add_zero_right]
-  add_closed := by
+  op_closed := by
     intro x y hx hy m
     calc
       x + y + m
@@ -24,10 +23,16 @@ theorem Center.submonoid [Monoid A]: Submonoid (Center A) := {
       _ = m + (x + y) := by rw [add_assoc]
 }
 
-theorem Center.subgroup [Group A]: Subgroup (Center A) := {
-  zero_mem := Center.submonoid.zero_mem
-  add_closed := Center.submonoid.add_closed
-  neg_closed := by
-    intro a ha m
-    sorry
+theorem Center.subgroup [Group α]: Subgroup (Center α) := {
+  unit_mem := Center.submonoid.unit_mem
+  op_closed := Center.submonoid.op_closed
+  inv_closed := by
+    intro a h m
+    calc
+      -a + m
+      _ = -a + -(-m) := by rw [neg_neg]
+      _ = -(-m + a)  := by rw [neg_plus]
+      _ = -(a + -m)  := by rw [h]
+      _ = -(-m) + -a := by rw [neg_plus]
+      _ = m + -a     := by rw [neg_neg]
 }
