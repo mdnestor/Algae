@@ -29,3 +29,12 @@ theorem add_comm [CommMagma α] (a b: α): a + b = b + a := by
 
 theorem mul_comm [CommMagma α] (a b: α): a * b = b * a := by
   apply add_comm
+
+def Magma.opposite (M: Magma α): Magma α := {
+  op := flip op
+}
+
+def CommMagma.opposite (M: CommMagma α): CommMagma α := {
+  op := M.toMagma.opposite.op
+  comm := by intro x y; exact comm y x
+}

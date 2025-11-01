@@ -9,6 +9,14 @@ class Monoid (α: Type u) extends Pointed α, Magma α where
   identity: Identity op unit
   assoc: Associative op
 
+
+def Monoid.opposite (M: Monoid α): Monoid α := {
+  op := M.toMagma.opposite.op
+  identity := ⟨identity.right, identity.left⟩
+  assoc := fun x y z => Eq.symm (assoc z y x)
+}
+
+
 theorem op_unit_left [Monoid α] (a: α): op unit a = a := by
   exact Monoid.identity.left a
 
@@ -80,6 +88,12 @@ theorem nmul_succ' [Monoid α] (a: α) (n: Nat): (n + 1) • a = a + (n • a) :
     _ = (1 + n) • a := by rw [Nat.add_comm]
     _ = 1 • a + n • a := by rw [nmul_add]
     _ = a + n • a := by rw [nmul_one]
+
+theorem nmul_inverses [Monoid α] {a b: α} (n: Nat) (h: a + b = 0): n • a + n • b = 0 := by
+  induction n with
+  | zero => simp [nmul_zero, add_zero_left]
+  | succ p hp => rw [nmul_succ', nmul_succ, add_assoc, ← add_assoc (p • a), hp, add_zero_left, h]
+
 
 def npow [Monoid α] (a: α) (n: Nat): α :=
   match n with

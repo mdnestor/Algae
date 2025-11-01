@@ -9,13 +9,12 @@ class Group (α: Type u) extends Monoid α where
 
 export Group (inv)
 
-
 -- Additive notation for a group
 instance [Group α]: Neg α := {
   neg := inv
 }
 
-instance [Group G]: Sub G := {
+instance [Group α]: Sub α := {
   sub := λ a b ↦ a + -b
 }
 
@@ -60,6 +59,15 @@ theorem mul_inv_left [Group α] (a: α): a⁻¹ * a = 1 := by
 theorem mul_inv_right [Group α] (a: α): a * a⁻¹ = 1 := by
   apply op_inv_right
 
+-- Opposite group
+-- TODO: is there a way to employ this usefully..? avoid repeating arguments?
+def Group.opposite [Group α]: Group α := {
+  op := Group.toMonoid.opposite.op
+  identity := Group.toMonoid.opposite.identity
+  assoc := Group.toMonoid.opposite.assoc
+  inv := inv
+  inverse := ⟨inverse.right, inverse.left⟩
+}
 
 
 class CommGroup (α: Type u) extends Group α, CommMonoid α
@@ -91,6 +99,14 @@ theorem neg_neg [Group G] (a: G): -(-a) = a := by
 -- In a group we can define integer multiplication via
 -- 0 * a = 0, 1 * a = a, 2 * a = a + a, ... and -1 * a = 1 * -a, -2 * a = 2 * (-a), ...
 
+theorem nmul_neg_left [Group α] (a: α) (n: Nat): n • (-a) + n • a = 0 := by
+  apply nmul_inverses n
+  exact add_neg_left a
+
+theorem nmul_neg_right [Group α] (a: α) (n: Nat): n • a + n • -a = 0 := by
+  apply nmul_inverses n
+  exact add_neg_right a
+
 def zmul [Group α] (k: Int) (a: α): α :=
   match k with
   | Int.ofNat n => n • a
@@ -99,6 +115,10 @@ def zmul [Group α] (k: Int) (a: α): α :=
 instance [Group G]: SMul Int G := {
   smul := zmul
 }
+
+
+theorem zmul_zero [Group α] (a: α): (0: Int) • a = (0: α) := by
+  rfl
 
 theorem nmul_inv [Group α] (a: α) (n: Nat): (n • a) + (n • -a) = 0 := by
   induction n with
@@ -113,29 +133,12 @@ theorem zmul_neg' [Group α] (a: α) (n: Int): -(n • a) = n • -a := by
   apply op_unit_inverses
   induction n <;> apply nmul_inv
 
-#check Int.negSucc_add_negSucc
 theorem zmul_add [Group α] (a: α) (m n: Int): m • a + n • a = (m + n) • a := by
   induction m with
-  | ofNat p => {
-    induction n with
-    | ofNat q => calc
-       Int.ofNat p • a + Int.ofNat q • a
-       _ = p • a + q • a := by rfl
-       _ = (p + q) • a := by rw [nmul_add]
-       _ = (Int.ofNat p + Int.ofNat q) • a := by rfl
-    | negSucc q => sorry
-  }
-  | negSucc p => {
-    induction n with
-    | ofNat q => {
-      sorry
-    }
-    | negSucc q => calc
-      Int.negSucc p • a + Int.negSucc q • a
-      _ = (p.succ + q.succ) • -a := by apply nmul_add
-      _ = (p + q).succ.succ • -a := by simp; rw [Nat.add_assoc, ←Nat.add_assoc 1, Nat.add_comm 1, Nat.add_assoc, ←Nat.add_assoc p]
-      _ = (Int.negSucc p + Int.negSucc q) • a := by rfl
-  }
+  | ofNat p => induction p with
+    | zero => simp [zmul_zero, add_zero_left]
+    | succ p hp => sorry
+  | negSucc p => sorry
 
 theorem zmul_neg [Group α] (a: α) (n: Int): n • (-a) = -n • a := by
   induction n with
@@ -143,7 +146,6 @@ theorem zmul_neg [Group α] (a: α) (n: Int): n • (-a) = -n • a := by
     Int.ofNat p • -a
     _ = p • -a := by rfl
     _ = -Int.ofNat p • a := sorry
-
   | negSucc p => sorry
 
 
@@ -164,7 +166,23 @@ theorem mul_cancel_left [Group G] {a b c: G} (h: a * b = a * c): b = c := by
   apply op_cancel_left h
 
 theorem add_cancel_right [Group G] {a b c: G} (h: a + c = b + c): a = b := by
+  have group: Group G := by assumption
+  apply Eq.symm
+  have := @add_cancel_left _ group.opposite c b a
+  apply this
+  apply Eq.symm
+
+  repeat rw [@add_eq]
+  repeat rw [@add_eq] at h
+  rw [Group.opposite]
   sorry
+  -- exact h
+
+
+  -- repeat rw [add_eq] at h
+
+
+  -- sorry
 
 -- Sanity check to make sure everything works.
 theorem square_self_zero [Group G] {a: G} (h: 2 • a = a): a = 0 := by
@@ -187,6 +205,7 @@ theorem square_self_zero [Group G] {a: G} (h: 2 • a = a): a = 0 := by
 
 -- "socks shoes" property
 theorem neg_add [Group G] (a b: G): -(a + b) = -b + -a := by
+  apply op_unit_inverses
   sorry
 
 -- Fix a ∈ G. Then the map G → G defined by b ↦ a * b is a bijection (permutation) on G.
