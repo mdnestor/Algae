@@ -17,6 +17,7 @@ def Monoid.opposite (M: Monoid α): Monoid α := {
 }
 
 
+
 theorem op_unit_left [Monoid α] (a: α): op unit a = a := by
   exact Monoid.identity.left a
 
@@ -145,7 +146,7 @@ theorem left_right_inverse_eq [Monoid α] {a b c: α}
     _ = c           := by rw [add_zero_left]
 
 -- On any type X the set of functions X → X is a monoid.
-def Endomonoid (M: Type u): Monoid (M → M) := {
+instance Endomonoid (M: Type u): Monoid (M → M) := {
   op := λ f g ↦ g ∘ f
   unit := Function.id
   identity := by constructor <;> exact congrFun rfl
@@ -163,6 +164,21 @@ def FreeMonoid (M : Type u) : Monoid (List M) := {
 
 class CommMonoid (A : Type u) extends Monoid A, CommMagma A
 
+example: CommMonoid Nat := {
+  op := Nat.add
+  unit := 0
+  identity := ⟨Nat.zero_add, Nat.add_zero⟩
+  assoc := Nat.add_assoc
+  comm := Nat.add_comm
+}
+
+example: CommMonoid Nat := {
+  op := Nat.mul
+  unit := 1
+  identity := ⟨Nat.one_mul, Nat.mul_one⟩
+  assoc := Nat.mul_assoc
+  comm := Nat.mul_comm
+}
 
 example (M: Type u): CommMonoid (Set M) := {
   op := Set.union
@@ -180,18 +196,21 @@ example (M: Type u): CommMonoid (Set M) := {
   comm := by exact Set.inter_comm
 }
 
-example: CommMonoid Nat := {
-  op := Nat.add
-  unit := 0
-  identity := by constructor; simp [LeftIdentity]; exact congrFun rfl
-  assoc := by exact Nat.add_assoc
-  comm := by exact Nat.add_comm
-}
 
-example: CommMonoid Nat := {
-  op := Nat.mul
-  unit := 1
-  identity := ⟨Nat.one_mul, Nat.mul_one⟩
-  assoc := by exact Nat.mul_assoc
-  comm := by exact Nat.mul_comm
+
+class MonoidHom [Monoid α] [Monoid β] (f: α → β): Prop extends PointedHom f, MagmaHom f
+
+class Submonoid [Monoid α] (S: Set α) extends Submagma S, Subpointed S
+
+
+
+theorem Kernel.submonoid [Monoid α] [Monoid β] {f: α → β} (hf: MonoidHom f): Submonoid (Kernel f) := {
+  unit_mem := hf.unit_preserving
+  op_closed := by
+    intro x y hx hy
+    calc
+      f (op x y)
+      _ = op (f x) (f y) := by rw [hf.op_preserving]
+      _ = op unit unit := by rw [hx, hy]
+      _ = unit := by rw [Monoid.identity.left]
 }

@@ -38,3 +38,21 @@ def CommMagma.opposite (M: CommMagma α): CommMagma α := {
   op := M.toMagma.opposite.op
   comm := by intro x y; exact comm y x
 }
+
+
+
+class MagmaHom [Magma α] [Magma β] (f: α → β): Prop where
+  op_preserving: ∀ a b: α, f (op a b) = op (f a) (f b)
+
+theorem MagmaHom.id (α: Type u) [Magma α]: MagmaHom (@Function.id α) := by
+  sorry
+
+theorem MagmaHom.comp [Magma α] [Magma β] [Magma γ]
+  {f: α → β} {g: β → γ} (hf: MagmaHom f) (hg: MagmaHom g)
+  : MagmaHom (g ∘ f) := by
+  sorry
+
+
+
+class Submagma [Magma α] (S: Set α): Prop where
+  op_closed: ∀ a b, a ∈ S → b ∈ S → op a b ∈ S

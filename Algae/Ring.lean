@@ -23,6 +23,9 @@ def Ring.one [Ring α]: α :=
 def Ring.neg [Ring α]: α → α :=
   Ring.add_struct.inv
 
+def Ring.sub [Ring α]: α → α → α :=
+  λ a b ↦ add a (neg b)
+
 instance [Ring α]: Add α := {
   add := Ring.add
 }
@@ -42,6 +45,19 @@ instance [Ring α]: One α := {
 instance [Ring α]: Neg α := {
   neg := Ring.neg
 }
+
+instance [Ring α]: Sub α := {
+  sub := Ring.sub
+}
+
+
+instance [Ring α]: Monoid α := Ring.mul_struct
+
+instance [Ring α]: CommGroup α := Ring.add_struct
+
+
+example [Ring α] (a: α): Ring.mul a 1 = a := by
+  exact op_unit_right a
 
 theorem Ring.add_assoc [Ring α] (a b c: α): a + b + c = a + (b + c) := by
   exact Ring.add_struct.assoc a b c
@@ -74,12 +90,31 @@ theorem Ring.distrib_right [Ring α] (a b c: α): (a + b) * c = (a * c) + (b * c
   exact Ring.distrib.right a b c
 
 theorem Ring.mul_zero_left [Ring α] (a: α): 0 * a = 0 := by
-  apply @add_cancel_left _ add_struct.toGroup (a := 0 * a)
+  apply add_cancel_left (a := 0 * a)
   calc
     (0 * a) + (0 * a)
     _ = (0 + 0) * a := by rw [distrib_right]
     _ = 0 * a := by rw [add_zero_left]
     _ = 0 * a + 0 := by rw [add_zero_right]
+
+
+theorem Ring.sub_self [Ring α] (a: α): a - a = 0 := by
+  apply negop_self
+
+theorem Ring.neg_sub [Ring α] (a b: α): a - b = -(b - a) := by
+  sorry
+
+theorem Ring.mul_neg [Ring α] (a b: α): a * (-b) = -(a * b) := by
+  sorry
+
+theorem Ring.neg_zero [Ring α]: -(0: α) = 0 := by
+  apply inv_unit
+
+theorem Ring.sub_zero_iff [Ring α] {a b: α}: a - b = 0 ↔ a = b := by
+  sorry
+
+theorem Ring.distrib_sub_left [Ring α] (a b c: α): a * (b - c) = a * b - a * c := by
+  sorry
 
 class CommRing (α: Type u) extends Ring α where
   mul_comm: ∀ x y: α, x * y = y * x

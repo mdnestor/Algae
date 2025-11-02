@@ -264,3 +264,13 @@ def Set.preimage (f: α → β) (B: Set β): Set α :=
 
 def Set.range (f: α → β): Set β :=
   λ b ↦ ∃ a, f a = b
+
+def Set.iUnion (A: ι → Set α): Set α :=
+  λ a ↦ ∃ i, a ∈ A i
+
+def Set.iInter (A: ι → Set α): Set α :=
+  λ a ↦ ∀ i, a ∈ A i
+
+class ExistsUnique {X: Type u} (P: X → Prop): Prop where
+  exist: ∃ x, P x
+  unique: ∀ x y, P x → P y → x = y

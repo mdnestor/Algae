@@ -82,7 +82,7 @@ theorem op_unit_inverses [Group α] {a b: α} (h: a + b = 0): -a = b := by
   exact op_inv_left a
   exact h
 
-theorem inv_unit [Group G]: -(0: G) = 0 := by
+theorem inv_unit [Group G]: inv (unit: G) = unit := by
   apply op_unit_inverses
   apply op_unit_left
 
@@ -92,9 +92,21 @@ theorem neg_zero [Group G]: -(0: G) = 0 := by
 theorem inv_one [Group G]: (1: G)⁻¹ = 1 := by
   apply inv_unit
 
-theorem neg_neg [Group G] (a: G): -(-a) = a := by
+theorem inv_inv [Group G] (a: G): inv (inv a) = a := by
   apply op_unit_inverses
   apply add_neg_left
+
+theorem neg_neg [Group G] (a: G): -(-a) = a := by
+  apply inv_inv
+
+theorem negop_self [Group α] (a: α): a - a = 0 := by
+  apply op_inv_right
+
+theorem neg_sub [Group α] (a: α): -(a - b) = b - a := by
+  apply op_unit_inverses
+  simp [sub_eq, add_eq, zero_eq]
+  rw [Monoid.assoc, ←Monoid.assoc (inv b)]
+  rw [op_inv_left, op_unit_left, op_inv_right]
 
 -- In a group we can define integer multiplication via
 -- 0 * a = 0, 1 * a = a, 2 * a = a + a, ... and -1 * a = 1 * -a, -2 * a = 2 * (-a), ...
@@ -211,3 +223,25 @@ theorem neg_add [Group G] (a b: G): -(a + b) = -b + -a := by
 -- Fix a ∈ G. Then the map G → G defined by b ↦ a * b is a bijection (permutation) on G.
 theorem Group.self_bijective [Group G] (a: G): Function.Bijective (λ b ↦ a + b) := by
   sorry
+
+
+
+class GroupHom [Group α] [Group β] (f: α → β): Prop extends MonoidHom f where
+  inv_preserving: ∀ a, f (inv a) = inv (f a)
+
+
+
+class Subgroup [Group α] (S: Set α) extends Submonoid S where
+  inv_closed: ∀ a, a ∈ S → inv a ∈ S
+
+theorem kernel_subgroup [Group α] [Group β] {f: α → β} (hf: GroupHom f): Subgroup (Kernel f) := {
+  unit_mem := (Kernel.submonoid hf.toMonoidHom).unit_mem
+  op_closed := (Kernel.submonoid hf.toMonoidHom).op_closed
+  inv_closed := by
+    intro x hx
+    calc
+      f (inv x)
+      _ = inv (f x) := by rw [hf.inv_preserving]
+      _ = inv unit := by rw [hx]
+      _ = unit := by rw [inv_unit]
+}
