@@ -14,6 +14,7 @@ def Ring.neg [Ring α]: α → α := Ring.add_struct.inv
 def Ring.sub [Ring α]: α → α → α := λ a b ↦ add a (neg b)
 def Ring.mul [Ring α]: α → α → α := Ring.mul_struct.op
 def Ring.one [Ring α]: α := Ring.mul_struct.unit
+
 instance [Ring α]: Zero α := ⟨Ring.add_struct.unit⟩
 instance [Ring α]: Add α := ⟨Ring.add⟩
 instance [Ring α]: Neg α := ⟨Ring.neg⟩

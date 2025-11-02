@@ -2,24 +2,31 @@ import Algae.Group
 
 variable {α: Type u}
 
+local instance [Magma α]: Add α := ⟨op⟩
+local instance [Pointed α]: Zero α := ⟨unit⟩
+local instance [Group α]: Neg α := ⟨inv⟩
+theorem add_eq [Magma α] (a b: α): a + b = op a b := rfl
+theorem zero_eq [Pointed α]: (0: α) = unit := rfl
+theorem neg_eq [Group α] (a: α): -a = inv a := rfl
+
 -- The center is the set of elements
 -- that commute with every other element
 def Center (α: Type u) [Magma α]: Set α :=
-  λ z ↦ ∀ m, op z m = op m z
+  λ z ↦ ∀ m, z + m = m + z
 
 theorem Center.submonoid [Monoid α]: Submonoid (Center α) := {
   unit_mem := by
     intro
-    rw [op_unit_left, op_unit_right]
+    rw [←zero_eq, op_unit_left, op_unit_right]
   op_closed := by
     intro x y hx hy m
     calc
       x + y + m
-      _ = x + (y + m) := by rw [add_assoc]
-      _ = x + (m + y) := by simp [add_eq]; rw [hy]
-      _ = x + m + y   := by rw [add_assoc]
-      _ = m + x + y   := by simp [add_eq]; rw [hx]
-      _ = m + (x + y) := by rw [add_assoc]
+      _ = x + (y + m) := by rw [op_assoc]
+      _ = x + (m + y) := by rw [hy]
+      _ = x + m + y   := by rw [op_assoc]
+      _ = m + x + y   := by rw [hx]
+      _ = m + (x + y) := by rw [op_assoc]
 }
 --      ...
 theorem Center.subgroup [Group α]: Subgroup (Center α) := {
@@ -29,9 +36,9 @@ theorem Center.subgroup [Group α]: Subgroup (Center α) := {
     intro a h m
     calc
       -a + m
-      _ = -a + -(-m) := by rw [neg_neg]
-      _ = -(-m + a)  := by rw [neg_add]
-      _ = -(a + -m)  := by simp [add_eq];rw [h]
-      _ = -(-m) + -a := by rw [neg_add]
-      _ = m + -a     := by rw [neg_neg]
+      _ = -a + -(-m) := by rw [inv_inv]
+      _ = -(-m + a)  := by rw [inv_op]
+      _ = -(a + -m)  := by rw [h]
+      _ = -(-m) + -a := by rw [inv_op]
+      _ = m + -a     := by rw [inv_inv]
 }

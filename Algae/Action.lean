@@ -1,3 +1,12 @@
+/-
+
+Group and monoid actions, orbits, stabilizers.
+
+TODO:
+- orbit stabilizer theorem
+
+-/
+
 import Algae.Group
 import Algae.Relation
 
@@ -28,6 +37,7 @@ example [Monoid α]: Action α α := {
 }
 
 
+
 def Action.faithful [Monoid α] (A: Action α X): Prop :=
   ∀ a, (∀ x, A.act a x = x) → a = unit
 
@@ -40,9 +50,13 @@ theorem free_implies_faithful [Nonempty X] [Monoid α] {A: Action α X} (h: A.fr
   exists Classical.ofNonempty
   exact ha Classical.ofNonempty
 
+
+
+-- The orbit of an point under an action.
 def Action.orbit [Monoid α] (A: Action α X) (x: X): Set X :=
   λ y ↦ ∃ a, A.act a x = y
 
+-- The reachability relation induced by an action.
 def Action.reachable [Monoid α] (A: Action α X): Endorelation X :=
   λ x y ↦ y ∈ A.orbit x
 
@@ -56,9 +70,6 @@ theorem Action.reachable_transitive [Monoid α] (A: Action α X): Transitive A.r
   exists op a b
   rw [A.act_op, ha, hb]
 
-theorem Action.reachable_preorder [Monoid α] (A: Action α X): Preorder A.reachable := by
-  exact ⟨A.reachable_reflexive, A.reachable_transitive⟩
-
 theorem Action.reachable_symmetric [Group α] (A: Action α X): Symmetric A.reachable := by
   intro x y ⟨a, ha⟩
   exists inv a
@@ -66,6 +77,8 @@ theorem Action.reachable_symmetric [Group α] (A: Action α X): Symmetric A.reac
 
 theorem Action.reachable_equivalence [Group α] (A: Action α X): Equivalence A.reachable := by
   exact ⟨A.reachable_reflexive, A.reachable_symmetric, A.reachable_transitive⟩
+
+
 
 def Action.transitive [Monoid α] (A: Action α X): Prop :=
   ∀ x y, A.reachable x y
@@ -117,7 +130,7 @@ theorem orbit_transitive [Group α] {A: Action α X} {x y z: X} (h₁: y ∈ Orb
   exists op a b
   rw [A.act_op, ha, hb]
 
-theorem action_transitive_iff [Group α] {A: Action α X}: A.transitive ↔ ∀ x, Orbit A x = Set.full X := by
+theorem action_transitive_iff [Group α] {A: Action α X}: A.transitive ↔ ∀ x, A.orbit x = Set.full X := by
   constructor
   · intro h x
     funext y
@@ -143,6 +156,8 @@ theorem orbit_mem_orbit_eq [Group α] (A: Action α X) (x₀ x) (h: x ∈ Orbit 
   · intro ⟨b, hb⟩
     exists op (inv a) b
     rw [A.act_op, act_inv ha, hb]
+
+
 
 -- Given an action of M on X, the stabilizer of x is the set of a in M which fix x.
 def Stabilizer [Monoid α] (A: Action α X) (x: X): Set α :=

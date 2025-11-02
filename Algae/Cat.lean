@@ -14,16 +14,7 @@ namespace Cat
 
 variable {α: Type u}
 
--- Notation is too complex to use.
-
--- infixr:10 " ⟶ " => Cat.hom
--- infixr:70 " ; " => Cat.comp
-
--- instance [C: Cat] (x: C.obj): OfNat (x ⟶ x) 1 := {
---   ofNat := Cat.id
--- }
-
--- The category of types.
+-- The category of sets/types.
 def Sets: Cat.{u + 1} := {
   obj := Type u
   hom := λ x y ↦ x → y
@@ -38,11 +29,11 @@ def Sets: Cat.{u + 1} := {
 def Monoid.toCat {α: Type u} (M: Monoid α): Cat := {
   obj := Unit
   hom := λ _ _ ↦ α
-  id := 0
-  comp := M.op
-  id_left := M.identity.left
-  id_right := M.identity.right
-  associative := M.assoc
+  id := unit
+  comp := op
+  id_left := Monoid.identity.left
+  id_right := Monoid.identity.right
+  associative := Monoid.assoc
 }
 
 -- The monoid of endomorphisms on an object.

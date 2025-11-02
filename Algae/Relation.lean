@@ -20,18 +20,5 @@ def Reflexive (R: Endorelation α): Prop :=
 def Transitive (R: Endorelation α): Prop :=
   ∀ {a b c}, R a b → R b c → R a c
 
-class Preorder (R: Endorelation α): Prop where
-  reflexive: Reflexive R
-  transitive: Transitive R
-
 def Symmetric (R: Endorelation α): Prop :=
   ∀ {a b}, R a b → R b a
-
-def Relation.toSet (R: Relation α β): Set (α × β) :=
-  λ (a, b) ↦ R a b
-
-def Set.toRelation (S: Set (α × β)): Relation α β :=
-  λ a b ↦ (a, b) ∈ S
-
-instance: Endorelation (Relation α β) :=
-  λ R₁ R₂ ↦ ∀ a b, R₁ a b → R₂ a b

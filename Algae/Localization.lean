@@ -1,14 +1,16 @@
-import Algae.Ring
+import Algae.Field
 import Algae.Relation
 
-variable {R: Type u}
+variable {R: Type u} [CommRing R] {S: Set R}
+
+namespace Localization
 
 -- Step 1: define the equivalence relation
 
-def localization_relation [Ring R] (S: Set R): Endorelation (R × S) :=
+def relation (S: Set R): Endorelation (R × S) :=
   λ (r₁, s₁) (r₂, s₂) ↦ ∃ t: R, t ∈ S ∧ t * (s₁ * r₂ - s₂ * r₁) = 0
 
-theorem localization_equivalence [Ring R] {S: Set R} (hS: @Submonoid R Ring.mul_struct S): Equivalence (localization_relation S) := {
+theorem equivalence (hS: Submonoid S): Equivalence (relation S) := {
   refl := by
     intro (r, s)
     exists 1
@@ -53,12 +55,14 @@ theorem localization_equivalence [Ring R] {S: Set R} (hS: @Submonoid R Ring.mul_
       _ = t₁ * t₂ * s₂ * (s₃ * r₁) := by sorry
 }
 
-def localization_quotient [Ring R] {S: Set R} (hS: @Submonoid R Ring.mul_struct S): Type u :=
-  Quotient ⟨localization_relation S, localization_equivalence hS⟩
+def quotient (hS: Submonoid S): Type u :=
+  Quotient ⟨relation S, equivalence hS⟩
 
 -- TODO: lift the ring operations to the quotient,
 -- i.e. show they are well defined..
 
 -- TODO: show R/S is a ring
+
+-- TODO define an integral domain
 
 -- TODO: show if R is integral domain then R/S is field.

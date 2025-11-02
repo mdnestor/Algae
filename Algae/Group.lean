@@ -172,7 +172,7 @@ theorem square_self_zero [Group G] {a: G} (h: 2 • a = a): a = 0 := by
 
 
 -- "socks shoes" property
-theorem neg_add [Group G] (a b: G): -(a + b) = -b + -a := by
+theorem inv_op [Group G] (a b: G): -(a + b) = -b + -a := by
   apply op_unit_inverses
   sorry
 

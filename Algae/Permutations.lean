@@ -1,3 +1,13 @@
+/-
+
+The permutation group on a set
+
+TODO:
+- better definitions in terms of actions
+- Cayley's theorem
+
+-/
+
 import Algae.Group
 
 variable {α: Type u}
