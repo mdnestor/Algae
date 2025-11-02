@@ -5,9 +5,6 @@ variable {α: Type u}
 local instance [Magma α]: Add α := ⟨op⟩
 local instance [Pointed α]: Zero α := ⟨unit⟩
 local instance [Group α]: Neg α := ⟨inv⟩
-theorem add_eq [Magma α] (a b: α): a + b = op a b := rfl
-theorem zero_eq [Pointed α]: (0: α) = unit := rfl
-theorem neg_eq [Group α] (a: α): -a = inv a := rfl
 
 def nmul_generate [Monoid α] (a: α): Set α :=
   Set.range (λ n: Nat ↦ n • a)

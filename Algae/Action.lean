@@ -1,6 +1,6 @@
 /-
 
-Group and monoid actions, orbits, stabilizers.
+Actions, orbits, stabilizers.
 
 TODO:
 - orbit stabilizer theorem
@@ -16,9 +16,6 @@ class Action (α: Type u) [Monoid α] (X: Type v) where
   act: α → X → X
   act_op: ∀ a b x, act (op a b) x = act b (act a x)
   act_id: LeftIdentity act unit
-
-def OppositeAction (α: Type u) [M: Monoid α] (X: Type v): Type (max u v) :=
-  @Action α M.opposite X
 
 export Action (act)
 
@@ -36,8 +33,6 @@ example [Monoid α]: Action α α := {
   act_id := Monoid.identity.left
 }
 
-
-
 def Action.faithful [Monoid α] (A: Action α X): Prop :=
   ∀ a, (∀ x, A.act a x = x) → a = unit
 
@@ -49,8 +44,6 @@ theorem free_implies_faithful [Nonempty X] [Monoid α] {A: Action α X} (h: A.fr
   apply h a
   exists Classical.ofNonempty
   exact ha Classical.ofNonempty
-
-
 
 -- The orbit of an point under an action.
 def Action.orbit [Monoid α] (A: Action α X) (x: X): Set X :=
@@ -78,7 +71,8 @@ theorem Action.reachable_symmetric [Group α] (A: Action α X): Symmetric A.reac
 theorem Action.reachable_equivalence [Group α] (A: Action α X): Equivalence A.reachable := by
   exact ⟨A.reachable_reflexive, A.reachable_symmetric, A.reachable_transitive⟩
 
-
+def Action.quotient [Group α] (A: Action α X): Type v :=
+  Quotient ⟨A.reachable, A.reachable_equivalence⟩
 
 def Action.transitive [Monoid α] (A: Action α X): Prop :=
   ∀ x y, A.reachable x y
@@ -88,8 +82,6 @@ def Action.regular [Monoid α] (A: Action α X): Prop :=
 
 theorem Action.regular_iff [Monoid α] (A: Action α X): A.regular ↔ ∀ x y, ExistsUnique (λ a ↦ A.act a x = y) := by
   sorry
-
-
 
 -- TODO: show the action of the symmetric group is transitive
 
@@ -130,7 +122,7 @@ theorem orbit_transitive [Group α] {A: Action α X} {x y z: X} (h₁: y ∈ Orb
   exists op a b
   rw [A.act_op, ha, hb]
 
-theorem action_transitive_iff [Group α] {A: Action α X}: A.transitive ↔ ∀ x, A.orbit x = Set.full X := by
+theorem action_transitive_iff_orbit_full [Group α] {A: Action α X}: A.transitive ↔ ∀ x, A.orbit x = Set.full X := by
   constructor
   · intro h x
     funext y

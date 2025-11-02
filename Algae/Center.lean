@@ -5,9 +5,6 @@ variable {α: Type u}
 local instance [Magma α]: Add α := ⟨op⟩
 local instance [Pointed α]: Zero α := ⟨unit⟩
 local instance [Group α]: Neg α := ⟨inv⟩
-theorem add_eq [Magma α] (a b: α): a + b = op a b := rfl
-theorem zero_eq [Pointed α]: (0: α) = unit := rfl
-theorem neg_eq [Group α] (a: α): -a = inv a := rfl
 
 -- The center is the set of elements
 -- that commute with every other element
@@ -17,9 +14,11 @@ def Center (α: Type u) [Magma α]: Set α :=
 theorem Center.submonoid [Monoid α]: Submonoid (Center α) := {
   unit_mem := by
     intro
-    rw [←zero_eq, op_unit_left, op_unit_right]
+    to_additive
+    rw [op_unit_right]
   op_closed := by
     intro x y hx hy m
+    to_additive
     calc
       x + y + m
       _ = x + (y + m) := by rw [op_assoc]

@@ -19,7 +19,7 @@ def Monoid.opposite (M: Monoid α): Monoid α := {
 }
 
 
-
+@[simp]
 theorem op_unit_left [Monoid α] (a: α): 0 + a = a := by
   exact Monoid.identity.left a
 

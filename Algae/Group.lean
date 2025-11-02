@@ -8,18 +8,28 @@ class Group (α: Type u) extends Monoid α where
 
 export Group (inv)
 
-local instance [Monoid α]: Add α := ⟨op⟩
-local instance [Monoid α]: Zero α := ⟨unit⟩
-local instance [Group α]: Neg α := ⟨inv⟩
-
 def invop [Group α] (a b: α): α :=
-  a + -b
+  op a (inv b)
 
-local instance [Group α]: Sub α := ⟨λ a b ↦ a + -b⟩
+local instance [Magma α]: Add α := ⟨op⟩
+local instance [Pointed α]: Zero α := ⟨unit⟩
+local instance [Group α]: Neg α := ⟨inv⟩
+local instance [Group α]: Sub α := ⟨invop⟩
 
+theorem zero_eq [Pointed α]: (0: α) = unit := rfl
+theorem add_eq [Magma α] (a b: α): a + b = op a b := rfl
+theorem neg_eq [Group α] (a: α): -a = inv a := rfl
+theorem sub_eq [Group α] (a b: α): a - b = invop a b := rfl
+theorem sub_eq' [Group α] (a b: α): a - b = a + -b := rfl
 
-theorem invop_eq [Group α] (a b: α): a - b = a + -b := by
-  rfl
+macro "to_generic": tactic =>
+  `(tactic| try simp [add_eq, zero_eq, mul_eq, one_eq])
+
+macro "to_additive": tactic =>
+  `(tactic| (to_generic; simp [←add_eq, ←zero_eq, ←neg_eq, ←sub_eq]))
+
+-- macro "to_multiplicative": tactic =>
+--   `(tactic| (to_generic; simp [←mul_eq, ←one_eq]))
 
 -- Unpacking group axioms for both notations
 
@@ -65,7 +75,7 @@ theorem invop_self [Group α] (a: α): a - a = 0 := by
 
 theorem inv_invop [Group α] (a: α): -(a - b) = b - a := by
   apply op_unit_inverses
-  simp [invop_eq]
+  simp [sub_eq']
   rw [op_assoc, ←op_assoc (-b)]
   rw [op_inv_left, op_unit_left, op_inv_right]
 
