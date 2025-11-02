@@ -14,7 +14,7 @@ theorem localization_equivalence [Ring R] {S: Set R} (hS: @Submonoid R Ring.mul_
     exists 1
     constructor
     · exact hS.unit_mem
-    · rw [Ring.mul_one_left, Ring.sub_self]
+    · rw [mul_one_left, sub_self]
   symm := by
     intro (r₁, s₁) (r₂, s₂) ⟨t, ht₁, ht₂⟩
     exists t
@@ -22,10 +22,10 @@ theorem localization_equivalence [Ring R] {S: Set R} (hS: @Submonoid R Ring.mul_
     exact ht₁
     calc
       t * (s₂ * r₁ - s₁ * r₂)
-      _ = t * (-(s₁ * r₂ - s₂ * r₁)) := by rw [Ring.neg_sub]
-      _ = - (t * (s₁ * r₂ - s₂ * r₁)) := by rw [Ring.mul_neg]
+      _ = t * (-(s₁ * r₂ - s₂ * r₁)) := by rw [neg_sub]
+      _ = - (t * (s₁ * r₂ - s₂ * r₁)) := by rw [mul_neg]
       _ = - 0 := by rw [ht₂]
-      _ = 0 := by rw [Ring.neg_zero]
+      _ = 0 := by rw [neg_zero]
   trans := by
     intro (r₁, s₁) (r₂, s₂) (r₃, s₃) ⟨t₁, ht₁₁, ht₁₂⟩ ⟨t₂, ht₂₁, ht₂₂⟩
     exists t₁ * t₂ * s₂
@@ -36,17 +36,17 @@ theorem localization_equivalence [Ring R] {S: Set R} (hS: @Submonoid R Ring.mul_
     exact s₂.property
     -- ht₁₂ : t₁ * (s₁ * r₂ - s₂ * r₁) = 0
     -- ht₂₂ : t₂ * (s₂ * r₃ - s₃ * r₂) = 0
-    rw [Ring.distrib_sub_left]
-    apply Ring.sub_zero_iff.mpr
+    rw [distrib_sub_left]
+    apply sub_zero_iff.mpr
     have: t₁ * s₁ * r₂ = t₁ * s₂ * r₁ := by
-      apply Ring.sub_zero_iff.mp
-      repeat rw [Ring.mul_assoc]
-      rw [←Ring.distrib_sub_left]
+      apply sub_zero_iff.mp
+      repeat rw [mul_assoc]
+      rw [←distrib_sub_left]
       exact ht₁₂
     have: t₂ * s₂ * r₃ = t₂ * s₃ * r₂ := by
-      apply Ring.sub_zero_iff.mp
-      repeat rw [Ring.mul_assoc]
-      rw [←Ring.distrib_sub_left]
+      apply sub_zero_iff.mp
+      repeat rw [mul_assoc]
+      rw [←distrib_sub_left]
       exact ht₂₂
     calc
       t₁ * t₂ * s₂ * (s₁ * r₃)

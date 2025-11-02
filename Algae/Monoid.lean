@@ -9,6 +9,8 @@ class Monoid (α: Type u) extends Pointed α, Magma α where
   identity: Identity op unit
   assoc: Associative op
 
+local instance [Monoid α]: Add α := ⟨op⟩
+local instance [Monoid α]: Zero α := ⟨unit⟩
 
 def Monoid.opposite (M: Monoid α): Monoid α := {
   op := M.toMagma.opposite.op
@@ -18,33 +20,14 @@ def Monoid.opposite (M: Monoid α): Monoid α := {
 
 
 
-theorem op_unit_left [Monoid α] (a: α): op unit a = a := by
+theorem op_unit_left [Monoid α] (a: α): 0 + a = a := by
   exact Monoid.identity.left a
 
-theorem op_unit_right [Monoid α] (a: α): op a unit = a := by
+theorem op_unit_right [Monoid α] (a: α): a + 0 = a := by
   exact Monoid.identity.right a
 
-
-
-theorem add_zero_left [Monoid A] (a: A): 0 + a = a := by
-  apply op_unit_left
-
-theorem add_zero_right [Monoid M] (a: M): a + 0 = a := by
-  apply op_unit_right
-
-theorem add_assoc [Monoid M] (a b c: M): a + b + c = a + (b + c) := by
+theorem op_assoc [Monoid M] (a b c: M): a + b + c = a + (b + c) := by
   exact Monoid.assoc a b c
-
-
-
-theorem mul_assoc [Monoid α] (a b c: α): (a * b) * c = a * (b * c) := by
-  apply add_assoc
-
-theorem mul_one_left [Monoid α] (a: α): 1 * a = a := by
-  apply add_zero_left
-
-theorem mul_one_right [Monoid α] (a: α): a * 1 = a := by
-  apply add_zero_right
 
 def inverses [Monoid α] (a b: α): Prop :=
   Inverses op a b unit
@@ -54,15 +37,15 @@ def inverses_iff [Monoid M] (a b: M): inverses a b ↔ a + b = 0 ∧ b + a = 0 :
 
 def Monoid.nmul [Monoid α] (n: Nat) (a: α): α :=
   match n with
-  | Nat.zero => unit
-  | Nat.succ p => op (nmul p a) a
+  | Nat.zero => 0
+  | Nat.succ p => (nmul p a) + a
 
 instance [Monoid α]: SMul Nat α := {
   smul := Monoid.nmul
 }
 
 -- Simple theorems about npow.
-theorem nmul_zero' [Monoid α] (a: α): 0 • a = unit := by
+theorem nmul_zero' [Monoid α] (a: α): 0 • a = 0 := by
   rfl
 
 
@@ -73,15 +56,15 @@ theorem nmul_succ [Monoid α] (a: α) (n: Nat): (n + 1) • a = (n • a) + a :=
   rfl
 
 theorem nmul_one [Monoid α] (a: α): 1 • a = a := by
-  rw [nmul_succ, nmul_zero, add_zero_left]
+  rw [nmul_succ, nmul_zero, op_unit_left]
 
 theorem nmul_two [Monoid α] (a: α): 2 • a = a + a := by
   rw [nmul_succ, nmul_one]
 
 theorem nmul_add [Monoid α] (a: α) (m n: Nat): m • a + n • a = (m + n) • a := by
   induction n with
-  | zero => rw [nmul_zero, add_zero_right, Nat.add_zero]
-  | succ _ hp => rw [nmul_succ, ←add_assoc, hp, ←Nat.add_assoc, nmul_succ]
+  | zero => rw [nmul_zero, op_unit_right, Nat.add_zero]
+  | succ _ hp => rw [nmul_succ, ←op_assoc, hp, ←Nat.add_assoc, nmul_succ]
 
 theorem nmul_succ' [Monoid α] (a: α) (n: Nat): (n + 1) • a = a + (n • a) := by
   calc
@@ -92,58 +75,37 @@ theorem nmul_succ' [Monoid α] (a: α) (n: Nat): (n + 1) • a = a + (n • a) :
 
 theorem nmul_inverses [Monoid α] {a b: α} (n: Nat) (h: a + b = 0): n • a + n • b = 0 := by
   induction n with
-  | zero => simp [nmul_zero, add_zero_left]
-  | succ p hp => rw [nmul_succ', nmul_succ, add_assoc, ← add_assoc (p • a), hp, add_zero_left, h]
+  | zero => simp [nmul_zero, op_unit_left]
+  | succ p hp => rw [nmul_succ', nmul_succ, op_assoc, ←op_assoc (p • a), hp, op_unit_left, h]
 
-
-def npow [Monoid α] (a: α) (n: Nat): α :=
-  match n with
-  | Nat.zero => 1
-  | Nat.succ p => npow a p * a
-
-instance [Monoid α]: HPow α Nat α := {
-  hPow := npow
-}
-
-theorem npow_zero [Monoid α] (a: α): a ^ 0 = (1: α) := by
-  apply nmul_zero; exact a
-
-theorem npow_succ [Monoid α] (a: α) (n: Nat): a ^ (n + 1) = a^n * a := by
-  rfl
-
-theorem npow_one [Monoid α] (a: α): a^1 = a := by
-  apply nmul_one
-
-theorem npow_two [Monoid α] (a: α): a^2 = a * a := by
-  apply nmul_two
 
 theorem inverses_unique [Monoid M] {a b b': M}
   (h: inverses a b) (h': inverses a b'): b = b' := by
   simp_all [inverses_iff]
   calc
-    b = b + 0        := by rw [add_zero_right]
+    b = b + 0        := by rw [op_unit_right]
     _ = b + (a + b') := by rw [h'.left]
-    _ = (b + a) + b' := by rw [add_assoc]
+    _ = (b + a) + b' := by rw [op_assoc]
     _ = 0 + b'       := by rw [h.right]
-    _ = b'           := by rw [add_zero_left]
+    _ = b'           := by rw [op_unit_left]
 
-macro "to_generic": tactic =>
-  `(tactic| try simp [add_eq, zero_eq, mul_eq, one_eq])
+-- macro "to_generic": tactic =>
+--   `(tactic| try simp [add_eq, zero_eq, mul_eq, one_eq])
 
-macro "to_additive": tactic =>
-  `(tactic| (to_generic; simp [←add_eq, ←zero_eq]))
+-- macro "to_additive": tactic =>
+--   `(tactic| (to_generic; simp [←add_eq, ←zero_eq]))
 
-macro "to_multiplicative": tactic =>
-  `(tactic| (to_generic; simp [←mul_eq, ←one_eq]))
+-- macro "to_multiplicative": tactic =>
+--   `(tactic| (to_generic; simp [←mul_eq, ←one_eq]))
 
 theorem left_right_inverse_eq [Monoid α] {a b c: α}
-  (h₁: op a b = unit) (h₂: op b c = unit): a = c := by
+  (h₁: a + b = 0) (h₂: b + c = 0): a = c := by
   calc
-    a = a + 0        := by rw [add_zero_right]
-    _ = a + (b + c) := by to_generic; rw [h₂]
-    _ = (a + b) + c := by rw [add_assoc]
-    _ = 0 + c       := by to_generic; rw [h₁]
-    _ = c           := by rw [add_zero_left]
+    a = a + 0        := by rw [op_unit_right]
+    _ = a + (b + c) := by rw [h₂]
+    _ = (a + b) + c := by rw [op_assoc]
+    _ = 0 + c       := by rw [h₁]
+    _ = c           := by rw [op_unit_left]
 
 -- On any type X the set of functions X → X is a monoid.
 instance Endomonoid (M: Type u): Monoid (M → M) := {
