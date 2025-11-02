@@ -177,3 +177,6 @@ theorem Stabilizer.subgroup [Group α] (A: Action α X) (x: X): Subgroup (Stabil
 
 theorem Action.free_iff_all_stabilizers_trivial [Group α] {A: Action α X}: A.free ↔ ∀ x, Stabilizer A x = Set.singleton unit := by
   sorry
+
+def Action.invariant_set [Monoid α] (A: Action α X) (S: Set X): Prop :=
+  ∀ a x, x ∈ S → A.act a x ∈ S
