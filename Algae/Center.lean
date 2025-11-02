@@ -1,4 +1,4 @@
-import Algae.Structure
+import Algae.Group
 import Algae.Subobject
 
 variable {α: Type u}

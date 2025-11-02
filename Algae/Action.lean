@@ -2,30 +2,29 @@ import Algae.Monoid
 
 variable {α: Type u} {X: Type v}
 
-class Action (α: Type u) (X: Type v) extends Monoid α where
+class Action (α: Type u) [Monoid α] (X: Type v) where
   act: α → X → X
-  act_assoc: ∀ (a b: α) (x: X), act a (act b x) = act (op a b) x
-  act_id: ∀ (x: X), act unit x = x
+  act_assoc: ∀ a b x, act (op a b) x = act a (act b x)
+  act_id: LeftIdentity act unit
 
-instance [Action α X]: SMul α X := {
+instance [Monoid α] [Action α X]: SMul α X := {
   smul := Action.act
 }
 
--- Every monoid has a unital action on itself.
+-- Every monoid defines an action on itself.
 example [Monoid α]: Action α α := {
   act := op
-  act_assoc := by
-    intro a b c
-    exact Eq.symm (Monoid.assoc a b c)
+  act_assoc := Monoid.assoc
   act_id := Monoid.identity.left
 }
 
+
+-- TODO: orbit
 -- Given an action of M on X, the orbit of x₀
 -- is the set of all x reachable by some action.
-def Orbit [Action α X] (x₀: X): Set X :=
-  λ x ↦ ∃ a: α, a • x₀ = x
 
+-- TODO: stabilizer
 -- Given an action of M on X, the stabilizer of x
 -- is the set of a in M which fix x.
-def Stabilizer [Action α X] (x: X): Set α :=
-  λ a ↦ a • x = x
+
+-- TODO: stabilizer forms a submonoid / subgroup

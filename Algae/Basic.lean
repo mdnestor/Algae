@@ -4,19 +4,19 @@ variable {α: Type u} {β: Type v}
 def Op (α: Type u): Type u :=
   α → α → α
 
-def LeftIdentity (op: Op α) (e: α): Prop :=
-  ∀ a, op e a = a
+def LeftIdentity (op: α → β → β) (e: α): Prop :=
+  ∀ x, op e x = x
 
-def RightIdentity (op: Op α) (e: α): Prop :=
-  ∀ a, op a e = a
+def RightIdentity (op: α → β → α) (e: β): Prop :=
+  ∀ x, op x e = x
 
 def Identity (op: Op α) (e: α): Prop :=
   LeftIdentity op e ∧ RightIdentity op e
 
-def Associative (op: Op α): Prop :=
-  ∀ a b c, op (op a b) c = op a (op b c)
+def Associative (op: α → α → α): Prop :=
+  ∀ x y z, op (op x y) z = op x (op y z)
 
-def Commutative (op: Op α): Prop :=
+def Commutative (op: α → α → β): Prop :=
   ∀ a b, op a b = op b a
 
 def Inverses (op: Op α) (a b e: α): Prop :=
