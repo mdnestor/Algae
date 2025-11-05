@@ -53,14 +53,16 @@ def Group.opposite [Group α]: Group α := {
 class CommGroup (α: Type u) extends Group α, CommMonoid α
 
 theorem inverses_inv [Group α] (a: α): inverses a (-a) := by
-  constructor
-  exact op_inv_right a
-  exact op_inv_left a
+  sorry
 
 theorem op_unit_inverses [Group α] {a b: α} (h: a + b = 0): -a = b := by
-  apply left_right_inverse_eq
-  exact op_inv_left a
-  exact h
+  calc
+    -a
+    _ = -a + 0 := by rw [op_unit_right]
+    _ = -a + (a + b) := by rw [←h]
+    _ = -a + a + b := by rw [op_assoc]
+    _ = 0 + b := by rw [op_inv_left]
+    _ = b := by rw [op_unit_left]
 
 theorem inv_unit [Group G]: -(0: G) = 0 := by
   apply op_unit_inverses

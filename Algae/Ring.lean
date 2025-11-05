@@ -90,13 +90,27 @@ theorem mul_neg [Ring α] (a b: α): a * (-b) = -(a * b) := by
   apply Eq.symm; apply op_unit_inverses
   rw [←distrib_left, add_neg_right, mul_zero_right]
 
--- (-1) * a = -a.
-theorem mul_neg_one [Ring R] (a: R): (-1) * a = -a := by
-  sorry
+theorem mul_neg_one [Ring α] (a: α): (-1) * a = -a := by
+  apply Eq.symm
+  apply op_unit_inverses
+  calc
+    a + -1 * a
+    _ = 1 * a + -1 * a := by rw [mul_one_left]
+    _ = (1 + -1) * a := by rw [distrib_right]
+    _ = 0 * a := by rw [add_neg_right]
+    _ = 0 := by rw [mul_zero_left]
 
 -- If 0 = 1 the ring is trivial.
-theorem zero_eq_one_trivial [Ring R] (h: 0 = 1): ∀ a b: R, a = b := by
-  sorry
+theorem zero_eq_one_trivial [Ring R] (h: (0: R) = 1): ∀ a b: R, a = b := by
+  intro a b
+  calc
+    a
+    _ = 1 * a := by rw [mul_one_left]
+    _ = 0 * a := by rw [h]
+    _ = 0     := by rw [mul_zero_left]
+    _ = 0 * b := by rw [mul_zero_left]
+    _ = 1 * b := by rw [h]
+    _ = b     := by rw [mul_one_left]
 
 class CommRing (α: Type u) extends Ring α where
   mul_comm: ∀ x y: α, x * y = y * x

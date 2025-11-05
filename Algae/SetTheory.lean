@@ -1,6 +1,6 @@
 import Algae.Basic
 
-variable {α: Type u} {β: Type v}
+variable {α: Type u} {β: Type v} {γ: Type w}
 
 def Function.id {α: Type u}: α → α :=
   λ a ↦ a
@@ -274,3 +274,6 @@ def Set.iInter (A: ι → Set α): Set α :=
 class ExistsUnique {X: Type u} (P: X → Prop): Prop where
   exist: ∃ x, P x
   unique: ∀ x y, P x → P y → x = y
+
+def switch (f: α → β → γ): β → α → γ :=
+  λ b a ↦ f a b
