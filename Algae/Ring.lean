@@ -2,6 +2,7 @@ import Algae.Group
 
 variable {α: Type u}
 
+namespace Ring
 
 class Ring (α: Type u) where
   add_struct: CommGroup α
@@ -21,6 +22,9 @@ instance [Ring α]: Neg α := ⟨Ring.neg⟩
 instance [Ring α]: Sub α := ⟨Ring.sub⟩
 instance [Ring α]: One α := ⟨Ring.mul_struct.unit⟩
 instance [Ring α]: Mul α := ⟨Ring.mul⟩
+instance [Ring α]: HPow α Nat α := ⟨flip Ring.mul_struct.nmul⟩
+instance [Ring α]: SMul Nat α := ⟨Ring.add_struct.nmul⟩
+instance [Ring α]: SMul Int α := ⟨Ring.add_struct.zmul⟩
 instance [Ring α]: CommGroup α := Ring.add_struct
 instance [Ring α]: Monoid α := Ring.mul_struct
 
@@ -65,7 +69,22 @@ theorem mul_zero_left [Ring α] (a: α): 0 * a = 0 := by
     _ = 0 * a := by rw [add_zero_left]
     _ = 0 * a + 0 := by rw [add_zero_right]
 
-theorem mul_zero_right [Ring R] (a: R): a * 0 = 0 := by
+theorem nmul_zero [Ring α] (a: α): 0 • a = 0 := by
+  rfl
+
+theorem nmul_succ [Ring α] (a: α) (n: Nat): (n + 1) • a = (n • a) + a := by
+  rfl
+
+theorem zmul_zero [Ring α] (a: α): (0: Int) • a = 0 := by
+  rfl
+
+theorem npow_zero [Ring α] (a: α): a^0 = 1 := by
+  rfl
+
+theorem npow_one [Ring α] (a: α): a^1 = a := by
+  apply nmul_one
+
+theorem mul_zero_right [Ring α] (a: α): a * 0 = 0 := by
   sorry
 
 theorem sub_self [Ring α] (a: α): a - a = 0 := by

@@ -92,13 +92,13 @@ theorem nmul_neg_right [Group α] (a: α) (n: Nat): n • a + n • -a = 0 := by
   apply nmul_inverses n
   exact op_inv_right a
 
-def zmul [Group α] (k: Int) (a: α): α :=
+def Group.zmul [Group α] (k: Int) (a: α): α :=
   match k with
   | Int.ofNat n => n • a
   | Int.negSucc n => n.succ • -a
 
 instance [Group G]: SMul Int G := {
-  smul := zmul
+  smul := Group.zmul
 }
 
 
