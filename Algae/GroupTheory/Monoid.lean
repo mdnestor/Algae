@@ -1,3 +1,4 @@
+import Algae.SetTheory.Notation
 import Algae.GroupTheory.Pointed
 import Algae.GroupTheory.Magma
 
@@ -125,6 +126,7 @@ def FreeMonoid (M : Type u) : Monoid (List M) := {
 
 
 class CommMonoid (A : Type u) extends Monoid A, CommMagma A
+
 
 example: CommMonoid Nat := {
   op := Nat.add

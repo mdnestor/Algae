@@ -1,1 +1,27 @@
-import Algae.Basic
+-- Get-ChildItem Algae -Recurse -Filter *.lean | % { "import " + ($_.FullName -replace '\\','/' -replace '^.*Algae/','Algae/' -replace '\.lean$','' -replace '/','.') }
+import Algae.Cat
+import Algae.GroupTheory.Action
+import Algae.GroupTheory.Center
+import Algae.GroupTheory.CyclicGroup
+import Algae.GroupTheory.DihedralGroup
+import Algae.GroupTheory.Generators
+-- import Algae.GroupTheory.GrothendieckGroup
+import Algae.GroupTheory.Group
+import Algae.GroupTheory.Magma
+import Algae.GroupTheory.Monoid
+import Algae.GroupTheory.NormalSubgroup
+import Algae.GroupTheory.Permutations
+import Algae.GroupTheory.Pointed
+import Algae.RingTheory.Fibonacci
+import Algae.RingTheory.Field
+import Algae.RingTheory.Localization
+import Algae.RingTheory.Module
+import Algae.RingTheory.Ring
+import Algae.RingTheory.VectorSpace
+import Algae.SetTheory.ENat
+import Algae.SetTheory.Function
+import Algae.SetTheory.Logic
+import Algae.SetTheory.Notation
+import Algae.SetTheory.Operation
+import Algae.SetTheory.Relation
+import Algae.SetTheory.Subset

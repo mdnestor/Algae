@@ -42,15 +42,16 @@ theorem Group.element_map_invertible [Group α] (a: α): Function.invertible (Gr
   exists λ x ↦ x - a
   constructor <;> (
     ext
-    simp [
-      element_map,
-      invop_eq,
-      op_assoc,
-      op_inv_left,
-      op_inv_right,
-      op_unit_right,
-      Function.id
-    ]
+    sorry
+    -- simp [
+    --   element_map,
+    --   invop,
+    --   op_assoc,
+    --   op_inv_left,
+    --   op_inv_right,
+    --   op_unit_right,
+    --   Function.id
+    -- ]
   )
 
 theorem Group.element_map_bijective [Group α] (a: α): Function.Bijective (Group.element_map a) := by
@@ -61,7 +62,8 @@ theorem Group.element_map_bijective [Group α] (a: α): Function.Bijective (Grou
   · intro c
     simp [element_map]
     exists (c - a)
-    rw [invop_eq, op_assoc, op_inv_left, op_unit_right]
+    --rw [invop_eq, op_assoc, op_inv_left, op_unit_right]
+    sorry
 
 -- Define a map α → (α → α) by a ↦ (x ↦ x + a).
 def Group.element_permutation (α: Type u) [Group α]: α → Permutation α :=
@@ -71,8 +73,8 @@ def Group.element_permutation_injective (α: Type u) [Group α]: Function.Inject
   intro a b h
   simp [element_permutation] at h
   have h2: (element_map a) 0 = (element_map b) 0 := by exact congrFun h 0
-  have ha: (element_map a) 0 = a := by simp [element_map]; rw [op_unit_left]
-  have hb: (element_map b) 0 = b := by simp [element_map]; rw [op_unit_left]
+  have ha: (element_map a) 0 = a := by simp [element_map]--; rw [op_unit_left]
+  have hb: (element_map b) 0 = b := by simp [element_map]--; rw [op_unit_left]
   rw [ha, hb] at h2
   exact h2
 

@@ -53,3 +53,36 @@ theorem GenLeastUpperBound.unique (R: Relation α β) (R': Endorelation β) (S: 
   apply hR'
   · exact h.right b' h'.left
   · exact h'.right b h.left
+
+
+
+def Relation.pullback (f: α → α') (g: β → β') (r: Relation α' β'): Relation α β :=
+  λ a b ↦ r (f a) (g b)
+
+def Endorelation.pullback (f: α → β) (r: Endorelation β): Endorelation α :=
+  λ a b ↦ r (f a) (f b)
+
+theorem Endorelation.pullback_reflexive (f: α → β) {r: Endorelation β} (hr: Reflexive r): Reflexive (pullback f r) := by
+  intro; apply hr
+
+theorem Endorelation.pullback_transitive (f: α → β) {r: Endorelation β} (hr: Transitive r): Transitive (pullback f r) := by
+  exact hr
+
+theorem Endorelation.pullback_symmetric (f: α → β) {r: Endorelation β} (hr: Symmetric r): Symmetric (pullback f r) := by
+  exact hr
+
+theorem Endorelation.pullback_equivalence (f: α → β) {r: Endorelation β} (hr: Equivalence r): Equivalence (pullback f r) := by
+  constructor
+  · exact pullback_reflexive f hr.refl
+  · exact pullback_symmetric f hr.symm
+  · sorry
+
+def Endorelation.pullback_eq (f: α → β): Endorelation α :=
+  Endorelation.pullback f Eq
+
+def Endorelation.map_equivalence (f: α → β): Equivalence (pullback_eq f) := by
+  apply Endorelation.pullback_equivalence f
+  constructor
+  intro; rfl
+  sorry
+  sorry

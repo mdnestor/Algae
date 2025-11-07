@@ -11,66 +11,71 @@ import Algae.SetTheory.Subset
 def ENat: Type :=
   Nat ⊕ Unit
 
-instance: Coe Nat ENat := {
+abbrev 𝔼: Type :=
+  ENat
+
+instance: Coe Nat 𝔼 := {
   coe := fun n => Sum.inl n
 }
 
-instance {n: Nat}: OfNat ENat (n: Nat) := {
+instance {n: Nat}: OfNat 𝔼 (n: Nat) := {
   ofNat := n
 }
 
-def ENat.infty: ENat :=
+namespace ENat
+
+def infty: 𝔼 :=
   Sum.inr Unit.unit
 
-instance: DecidableEq ENat :=
+instance: DecidableEq 𝔼 :=
   instDecidableEqSum
 
-def ENat.add: Op ENat :=
+def add: Op 𝔼 :=
   fun a b => match a with
     | Sum.inl a => match b with
       | Sum.inl b => a + b
       | Sum.inr _ => infty
     | Sum.inr _ => infty
 
-instance: Add ENat := {
-  add := ENat.add
+instance: Add 𝔼 := {
+  add := add
 }
 
-def ENat.mul: Op ENat :=
+def mul: Op 𝔼 :=
   fun a b => match a with
     | Sum.inl a => match b with
       | Sum.inl b => a * b
       | Sum.inr _ => if a = 0 then 0 else infty
     | Sum.inr _ => if b = 0 then 0 else infty
 
-instance: Mul ENat := {
-  mul := ENat.mul
+instance: Mul 𝔼 := {
+  mul := mul
 }
 
-def ENat.le: Endorelation ENat :=
+def le: Endorelation 𝔼 :=
   fun a b => match b with
     | Sum.inl b => match a with
       | Sum.inl a => a ≤ b
       | Sum.inr _ => False
     | Sum.inr _ => True
 
-instance: LE ENat := {
-  le := ENat.le
+instance: LE 𝔼 := {
+  le := le
 }
 
 instance LE.toLT {α: Type u} [LE α]: LT α := {
   lt := fun a b => a ≤ b ∧ a ≠ b
 }
 
-def ENat.lt: Endorelation ENat :=
+def lt: Endorelation 𝔼 :=
   LE.toLT.lt
 
-instance: LT ENat :=
+instance: LT 𝔼 :=
   LE.toLT
 
 /-
 
-First the additive structure of ENat:
+First the additive structure of 𝔼:
 - it is a commutative monoid with 0 the identity, i.e.
   - associative
   - identity left and right
@@ -80,7 +85,7 @@ First the additive structure of ENat:
 
 -/
 
-theorem ENat.add_assoc (a b c: ENat): (a + b) + c = a + (b + c) := by
+theorem add_assoc (a b c: 𝔼): (a + b) + c = a + (b + c) := by
   match a with
   | Sum.inl a => match b with
     | Sum.inl b => match c with
@@ -89,32 +94,32 @@ theorem ENat.add_assoc (a b c: ENat): (a + b) + c = a + (b + c) := by
     | Sum.inr b => rfl
   | Sum.inr a => rfl
 
-theorem ENat.add_zero_left (a: ENat): 0 + a = a := by
+theorem add_zero_left (a: 𝔼): 0 + a = a := by
   sorry
 
-theorem ENat.add_zero_right (a: ENat): a + 0 = a := by
+theorem add_zero_right (a: 𝔼): a + 0 = a := by
   sorry
 
-theorem ENat.add_comm (a b: ENat): a + b = b + a := by
+theorem add_comm (a b: 𝔼): a + b = b + a := by
   sorry
 
-theorem ENat.lt_infty_iff_neq_infty (a: ENat): a < infty ↔ a ≠ infty := by
+theorem lt_infty_iff_neq_infty (a: 𝔼): a < infty ↔ a ≠ infty := by
   constructor
   intro h
   sorry
   intro h
   sorry
 
-theorem ENat.add_cancel_left {a b c: ENat} (h: a + b = a + c) (ha: a ≠ infty): b = c := by
+theorem add_cancel_left {a b c: 𝔼} (h: a + b = a + c) (ha: a ≠ infty): b = c := by
   sorry
 
-theorem ENat.add_cancel_right {a b c: ENat} (h: a + c = b + c) (hc: c ≠ infty): a = b := by
+theorem add_cancel_right {a b c: 𝔼} (h: a + c = b + c) (hc: c ≠ infty): a = b := by
   sorry
 
-theorem ENat.add_infty_left (a: ENat): infty + a = infty := by
+theorem add_infty_left (a: 𝔼): infty + a = infty := by
   sorry
 
-theorem ENat.add_infty_right (a: ENat): a + infty = infty := by
+theorem add_infty_right (a: 𝔼): a + infty = infty := by
   sorry
 
 /-
@@ -126,43 +131,43 @@ Next the multiplcicative structure:
 
 -/
 
-theorem ENat.mul_assoc (a b c: ENat): (a * b) * c = a * (b * c) := by
+theorem mul_assoc (a b c: 𝔼): (a * b) * c = a * (b * c) := by
   sorry
 
-theorem ENat.mul_one_left (a: ENat): 1 * a = a := by
+theorem mul_one_left (a: 𝔼): 1 * a = a := by
   sorry
 
-theorem ENat.mul_one_right (a: ENat): a * 1 = a := by
+theorem mul_one_right (a: 𝔼): a * 1 = a := by
   sorry
 
-theorem ENat.mul_comm (a b: ENat): a * b = b * a := by
+theorem mul_comm (a b: 𝔼): a * b = b * a := by
   sorry
 
-theorem ENat.mul_cancel_left {a b c: ENat} (h: a * b = a * c) (ha₁: a ≠ 0) (ha₂: a ≠ infty): b = c := by
+theorem mul_cancel_left {a b c: 𝔼} (h: a * b = a * c) (ha₁: a ≠ 0) (ha₂: a ≠ infty): b = c := by
   sorry
 
-theorem ENat.mul_cancel_right {a b c: ENat} (h: a * c = b * c) (hc₁: c ≠ 0) (hc₂: c ≠ infty): a = b := by
+theorem mul_cancel_right {a b c: 𝔼} (h: a * c = b * c) (hc₁: c ≠ 0) (hc₂: c ≠ infty): a = b := by
   sorry
 
 
-theorem ENat.mul_infty_left {a: ENat} (ha: a ≠ 0): infty * a = infty := by
+theorem mul_infty_left {a: 𝔼} (ha: a ≠ 0): infty * a = infty := by
   sorry
 
-theorem ENat.mul_infty_right {a: ENat} (ha: a ≠ 0): a * infty = infty := by
+theorem mul_infty_right {a: 𝔼} (ha: a ≠ 0): a * infty = infty := by
   sorry
 
 -- Interaction of additive and multiplicative structure
 
-theorem ENat.mul_zero_left (a: ENat): 0 * a = 0 := by
+theorem mul_zero_left (a: 𝔼): 0 * a = 0 := by
   sorry
 
-theorem ENat.mul_zero_right (a: ENat): a * 0 = 0 := by
+theorem mul_zero_right (a: 𝔼): a * 0 = 0 := by
   sorry
 
-theorem ENat.distrib_left (a b c: ENat): a * (b + c) = a * b + a * c := by
+theorem distrib_left (a b c: 𝔼): a * (b + c) = a * b + a * c := by
   sorry
 
-theorem ENat.distrib_right (a b c: ENat): (a + b) * c = a * c + b * c := by
+theorem distrib_right (a b c: 𝔼): (a + b) * c = a * c + b * c := by
   sorry
 
 /-
@@ -175,48 +180,48 @@ Finally the order structure:
 
 -/
 
-theorem ENat.le_refl {a: ENat}: a ≤ a := by
+theorem le_refl {a: 𝔼}: a ≤ a := by
   sorry
 
-theorem ENat.le_trans {a b c: ENat} (h₁: a ≤ b) (h₂: b ≤ c): a ≤ c := by
+theorem le_trans {a b c: 𝔼} (h₁: a ≤ b) (h₂: b ≤ c): a ≤ c := by
   sorry
 
-theorem ENat.le_antisymm {a b: ENat} (h₁: a ≤ b) (h₂: b ≤ a): a = b := by
+theorem le_antisymm {a b: 𝔼} (h₁: a ≤ b) (h₂: b ≤ a): a = b := by
   sorry
 
-theorem ENat.le_total {a b: ENat}: a ≤ b ∨ b ≤ a := by
+theorem le_total {a b: 𝔼}: a ≤ b ∨ b ≤ a := by
   sorry
 
 -- Interaction of arithmetic and order structure
-theorem ENat.add_le (a b: ENat): a ≤ a + b := by
+theorem add_le (a b: 𝔼): a ≤ a + b := by
   sorry
 
-theorem ENat.mul_le (a: ENat) {b: ENat} (hb: b ≠ 0): a ≤ a * b := by
+theorem mul_le (a: 𝔼) {b: 𝔼} (hb: b ≠ 0): a ≤ a * b := by
   sorry
 
-theorem ENat.lt_wfRel: WellFounded ENat.lt := by
+theorem lt_wfRel: WellFounded lt := by
   sorry
 
-def ENat.max (a b: ENat): ENat :=
+def max (a b: 𝔼): 𝔼 :=
   sorry
 
-def ENat.min (a b: ENat): ENat :=
+def min (a b: 𝔼): 𝔼 :=
   sorry
 
-def ENat.sup (S: Set ENat): ENat :=
+def sup (S: Set 𝔼): 𝔼 :=
   sorry
 
-def ENat.inf (S: Set ENat): ENat :=
+def inf (S: Set 𝔼): 𝔼 :=
   sorry
 
-theorem ENat.inf_le (S: Set ENat) (a: ENat) (ha: a ∈ S): inf S ≤ a := by
+theorem inf_le (S: Set 𝔼) (a: 𝔼) (ha: a ∈ S): inf S ≤ a := by
   sorry
 
-theorem ENat.inf_empty: inf ∅ = infty := by
+theorem inf_empty: inf ∅ = infty := by
   sorry
 
-theorem ENat.le_sup (S: Set ENat) (a: ENat) (ha: a ∈ S): a ≤ sup S := by
+theorem le_sup (S: Set 𝔼) (a: 𝔼) (ha: a ∈ S): a ≤ sup S := by
   sorry
 
-theorem ENat.sup_empty: sup ∅ = 0 := by
+theorem sup_empty: sup ∅ = 0 := by
   sorry

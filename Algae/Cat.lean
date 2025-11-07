@@ -1,4 +1,4 @@
-import Algae.Group
+import Algae.GroupTheory.Group
 
 class Cat.{u, v} where
   obj: Type u
