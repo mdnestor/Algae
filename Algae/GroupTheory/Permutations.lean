@@ -8,7 +8,7 @@ TODO:
 
 -/
 
-import Algae.Group
+import Algae.GroupTheory.Group
 
 variable {α: Type u}
 

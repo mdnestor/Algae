@@ -1,4 +1,5 @@
-import Algae.SetTheory
+import Algae.SetTheory.Function
+import Algae.SetTheory.Subset
 
 variable {α: Type u} {β: Type v} {γ: Type w}
 
@@ -17,6 +18,9 @@ def Endorelation (α: Type u): Type u :=
 def Reflexive (R: Endorelation α): Prop :=
   ∀ a, R a a
 
+def Irreflexive (R: Endorelation α): Prop :=
+  ∀ a, ¬ R a a
+
 def Transitive (R: Endorelation α): Prop :=
   ∀ {a b c}, R a b → R b c → R a c
 
@@ -25,6 +29,9 @@ def Symmetric (R: Endorelation α): Prop :=
 
 def Antisymmetric (R: Endorelation α): Prop :=
   ∀ {a b}, R a b → R b a → a = b
+
+def Total (R: Endorelation α): Prop :=
+  ∀ {a b}, R a b ∨ R b a
 
 def UpperBound (R: Relation α β) (S: Set α) (b: β): Prop :=
   ∀ a, a ∈ S → R a b

@@ -1,11 +1,13 @@
-import Algae.Ring
-import Algae.Action
+import Algae.RingTheory.Ring
+import Algae.GroupTheory.Action
 
 /-
 
 Define of an R-module on X where R is a ring and X is a group.
 
 -/
+
+open Ring
 
 class Module (R: Type u) (X: Type v) [Ring R] [CommGroup X] extends Action R X where
   smul_distributive_left: ∀ (r: R) (x₁ x₂: X),

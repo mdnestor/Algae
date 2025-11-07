@@ -1,50 +1,6 @@
-import Algae.Basic
+import Algae.SetTheory.Operation
 
 variable {α: Type u} {β: Type v} {γ: Type w}
-
-def Function.id {α: Type u}: α → α :=
-  λ a ↦ a
-
-def Function.constant (α: Type u) {β: Type v} (b: β): α → β :=
-  λ _ ↦ b
-
-def Function.Bijective  (f: α → β): Prop :=
-  Injective f ∧ Surjective f
-
-def Function.inverses (f: α → β) (g: β → α): Prop :=
-  g ∘ f = id
-
-theorem Function.inverses_id: inverses (@id α) (@id α) := by
-  constructor <;> rfl
-
-theorem Function.inverses_comp (hf: inverses f f') (hg: inverses g g'): inverses (g ∘ f) (f' ∘ g') := by
-  calc
-    (f' ∘ g') ∘ g ∘ f
-  _ = f' ∘ (g' ∘ g) ∘ f := by rfl
-  _ = f' ∘ id ∘ f := by rw [hg]
-  _ = f' ∘ f := by rfl
-  _ = id := by rw [hf]
-
-def Function.invertible (f: α → β): Prop :=
-  ∃ g, Function.inverses f g ∧ Function.inverses g f
-
-theorem Function.invertible_id {α: Type u}: Function.invertible (@id α) := by
-  exists id
-
-theorem Function.invertible_comp {f: α → β} {g: β → γ} (hf: invertible f) (hg: invertible g): invertible (g ∘ f) := by
-  obtain ⟨f', hf⟩ := hf
-  obtain ⟨g', hg⟩ := hg
-  exists f' ∘ g'
-  constructor
-  exact Function.inverses_comp hf.left hg.left
-  exact Function.inverses_comp hg.right hf.right
-
-def Function.associator (A: Type u) (B: Type v) (C: Type w): A × B × C → (A × B) × C :=
-  λ ⟨a, ⟨b, c⟩⟩ ↦ ⟨⟨a, b⟩, c⟩
-
-def Function.associator_inverse (A: Type u) (B: Type v) (C: Type w): (A × B) × C → A × B × C :=
-  λ ⟨⟨a, b⟩, c⟩ ↦ ⟨a, ⟨b, c⟩⟩
-
 
 def Set (α: Type u): Type u :=
   α → Prop
@@ -58,6 +14,9 @@ def Set.empty (α: Type u): Set α :=
 
 def Set.full (α: Type u): Set α :=
   λ _ ↦ True
+
+def Set.nonempty {α: Type u} (S: Set α): Prop :=
+  ∃ a, S a
 
 -- define this
 def Set.singleton {α: Type u} (a: α): Set α :=
@@ -270,10 +229,3 @@ def Set.iUnion (A: ι → Set α): Set α :=
 
 def Set.iInter (A: ι → Set α): Set α :=
   λ a ↦ ∀ i, a ∈ A i
-
-class ExistsUnique {X: Type u} (P: X → Prop): Prop where
-  exist: ∃ x, P x
-  unique: ∀ x y, P x → P y → x = y
-
-def switch (f: α → β → γ): β → α → γ :=
-  λ b a ↦ f a b

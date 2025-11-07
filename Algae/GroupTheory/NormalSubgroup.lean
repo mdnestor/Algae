@@ -1,5 +1,5 @@
-import Algae.Group
-import Algae.Action
+import Algae.GroupTheory.Group
+import Algae.GroupTheory.Action
 
 variable {α: Type u}
 

@@ -7,8 +7,9 @@ TODO:
 
 -/
 
-import Algae.Group
-import Algae.Relation
+import Algae.GroupTheory.Group
+import Algae.SetTheory.Relation
+import Algae.SetTheory.Logic
 
 variable {α: Type u} {X: Type v}
 

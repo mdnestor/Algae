@@ -1,10 +1,12 @@
 /-
 
 Fibonacci numbers in a ring B)
-
+hi :)
 -/
 
-import Algae.Ring
+import Algae.RingTheory.Ring
+
+open Ring
 
 variable {α: Type u}
 

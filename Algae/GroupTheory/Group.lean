@@ -1,4 +1,4 @@
-import Algae.Monoid
+import Algae.GroupTheory.Monoid
 
 variable {α: Type u}
 

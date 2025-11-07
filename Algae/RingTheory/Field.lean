@@ -1,4 +1,6 @@
-import Algae.Ring
+import Algae.RingTheory.Ring
+
+open Ring
 
 variable {F: Type u}
 

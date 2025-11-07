@@ -1,5 +1,5 @@
-import Algae.Pointed
-import Algae.Magma
+import Algae.GroupTheory.Pointed
+import Algae.GroupTheory.Magma
 
 variable {α: Type u}
 

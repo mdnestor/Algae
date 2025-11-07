@@ -1,5 +1,7 @@
-import Algae.Field
-import Algae.Relation
+import Algae.RingTheory.Field
+import Algae.SetTheory.Relation
+
+open Ring
 
 variable {R: Type u} [CommRing R] {S: Set R}
 

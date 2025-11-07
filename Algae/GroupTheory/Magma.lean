@@ -1,4 +1,5 @@
-import Algae.SetTheory
+import Algae.SetTheory.Function
+import Algae.SetTheory.Subset
 
 variable {α: Type u}
 
