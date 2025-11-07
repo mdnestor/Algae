@@ -53,7 +53,9 @@ def Group.opposite [Group α]: Group α := {
 class CommGroup (α: Type u) extends Group α, CommMonoid α
 
 theorem inverses_inv [Group α] (a: α): inverses a (-a) := by
-  sorry
+  constructor
+  exact op_inv_right a
+  exact op_inv_left a
 
 theorem op_unit_inverses [Group α] {a b: α} (h: a + b = 0): -a = b := by
   calc
@@ -185,8 +187,19 @@ theorem square_self_zero [Group G] {a: G} (h: 2 • a = a): a = 0 := by
 
 -- "socks shoes" property
 theorem inv_op [Group G] (a b: G): -(a + b) = -b + -a := by
-  apply op_unit_inverses
-  sorry
+  --apply op_unit_inverses
+  --to_additive
+  repeat rw [←neg_eq]
+  apply op_cancel_right (c := (a + b))
+  rw [op_inv_left]
+  apply Eq.symm
+  calc
+    -b + -a + (a + b)
+    _ = -b + (-a + (a + b)) := by rw [op_assoc]
+    _ = -b + ((-a + a) + b) := by rw [op_assoc]
+    _ = -b + (0 + b)        := by rw [op_inv_left]
+    _ = -b + b              := by rw [op_unit_left]
+    _ = 0                   := by rw [op_inv_left]
 
 -- Fix a ∈ G. Then the map G → G defined by b ↦ a * b is a bijection (permutation) on G.
 theorem Group.self_bijective [Group G] (a: G): Function.Bijective (λ b ↦ a + b) := by
