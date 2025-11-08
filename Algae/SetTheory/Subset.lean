@@ -224,6 +224,9 @@ def Set.preimage (f: α → β) (B: Set β): Set α :=
 def Set.range (f: α → β): Set β :=
   λ b ↦ ∃ a, f a = b
 
+theorem Set.range_mem (f: α → β) (a: α): f a ∈ Set.range f := by
+  exists a
+
 def Set.iUnion (A: ι → Set α): Set α :=
   λ a ↦ ∃ i, a ∈ A i
 

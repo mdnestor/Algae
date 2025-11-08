@@ -4,7 +4,7 @@ Actions, orbits, stabilizers.
 
 TODO:
 - orbit stabilizer theorem
-
+hahah
 -/
 
 import Algae.GroupTheory.Group
@@ -28,10 +28,14 @@ theorem act_inv [Group α] [Action α X] {a: α} {x y: X} (h: act a x = y) : act
   rw [←h, ←Action.act_op, Group.inverse.right, Action.act_id]
 
 -- Every monoid defines an action on itself.
-example [Monoid α]: Action α α := {
-  act := op
-  act_op := sorry
-  act_id := Monoid.identity.left
+def Action.endo (M: Monoid α): Action α α := {
+  act := flip op
+  act_op := by
+    intro a b c
+    simp [flip]
+    to_additive
+    rw [op_assoc]
+  act_id := Monoid.identity.right
 }
 
 def Action.faithful [Monoid α] (A: Action α X): Prop :=

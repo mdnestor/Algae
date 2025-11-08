@@ -57,3 +57,10 @@ theorem MagmaHom.comp [Magma α] [Magma β] [Magma γ]
 
 class Submagma [Magma α] (S: Set α): Prop where
   op_closed: ∀ a b, a ∈ S → b ∈ S → op a b ∈ S
+
+theorem Submagma.image_hom [Magma α] [Magma β] {f: α → β} (hf: MagmaHom f): Submagma (Set.range f) := {
+  op_closed := by
+    intro _ _ ⟨a₁, ha₁⟩ ⟨a₂, ha₂⟩
+    rw [←ha₁, ←ha₂, ←hf.op_preserving]
+    apply Set.range_mem
+}

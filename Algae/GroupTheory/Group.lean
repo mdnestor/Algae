@@ -196,10 +196,18 @@ theorem Group.self_bijective [Group G] (a: G): Function.Bijective (λ b ↦ a + 
 class GroupHom [Group α] [Group β] (f: α → β): Prop extends MonoidHom f where
   inv_preserving: ∀ a, f (-a) = -(f a)
 
-
-
 class Subgroup [Group α] (S: Set α) extends Submonoid S where
   inv_closed: ∀ a, a ∈ S → inv a ∈ S
+
+theorem Subgroup.image_hom [Group α] [Group β] {f: α → β} (hf: GroupHom f): Subgroup (Set.range f) := {
+  unit_mem := (Subpointed.image_hom hf.toPointedHom).unit_mem
+  op_closed := (Submagma.image_hom hf.toMagmaHom).op_closed
+  inv_closed := by
+    intro _ ⟨a, ha⟩
+    to_additive
+    rw [←ha, ←hf.inv_preserving]
+    apply Set.range_mem
+}
 
 theorem kernel_subgroup [Group α] [Group β] {f: α → β} (hf: GroupHom f): Subgroup (Kernel f) := {
   unit_mem := (Kernel.submonoid hf.toMonoidHom).unit_mem

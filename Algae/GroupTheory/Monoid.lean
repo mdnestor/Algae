@@ -166,7 +166,10 @@ class MonoidHom [Monoid α] [Monoid β] (f: α → β): Prop extends PointedHom 
 
 class Submonoid [Monoid α] (S: Set α) extends Submagma S, Subpointed S
 
-
+theorem Submonoid.image_hom [Monoid α] [Monoid β] {f: α → β} (hf: MonoidHom f): Submonoid (Set.range f) := {
+  unit_mem := (Subpointed.image_hom hf.toPointedHom).unit_mem
+  op_closed := (Submagma.image_hom hf.toMagmaHom).op_closed
+}
 
 theorem Kernel.submonoid [Monoid α] [Monoid β] {f: α → β} (hf: MonoidHom f): Submonoid (Kernel f) := {
   unit_mem := hf.unit_preserving

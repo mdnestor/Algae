@@ -48,6 +48,12 @@ theorem Subpointed.full [Pointed α]: Subpointed (Set.full α) := {
   unit_mem := trivial
 }
 
+theorem Subpointed.image_hom [Pointed α] [Pointed β] {f: α → β} (hf: PointedHom f): Subpointed (Set.range f) := {
+  unit_mem := by
+    rw [←hf.unit_preserving]
+    apply Set.range_mem
+}
+
 -- TODO: subpointed union, inter, subset
 
 instance Pointed.product [Pointed α] [Pointed β]: Pointed (α × β) := {
