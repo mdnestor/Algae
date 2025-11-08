@@ -11,10 +11,12 @@ E.g. how the integers are constructed from the naturals.
 
 variable {α: Type u}
 
-def relation (α: Type u) [Add α]: α × α → α × α → Prop :=
+open Group
+
+def relation (α: Type u) [Magma α]: α × α → α × α → Prop :=
   λ (a₁, a₂) (b₁, b₂) ↦ ∃ k, a₁ + b₂ + k = b₁ + a₂ + k
 
-instance(α: Type u) [Add α]: HasEquiv (α × α) := {
+instance(α: Type u) [Magma α]: HasEquiv (α × α) := {
   Equiv := relation α
 }
 
@@ -81,9 +83,9 @@ theorem quotient_neg [CommMonoid α] (a b: α × α) (h: a ≈ b):
   exists k
   calc
     a.snd + b.fst + k
-    _ = b.fst + a.snd + k := by rw [add_comm a.snd]
+    _ = b.fst + a.snd + k := by rw [op_comm a.snd]
     _ = a.fst + b.snd + k := by rw [hk]
-    _ = b.snd + a.fst + k := by rw [add_comm a.fst]
+    _ = b.snd + a.fst + k := by rw [op_comm a.fst]
 
 instance [CommMonoid α]: Neg (quotient α) := {
   neg := λ x ↦ Quotient.liftOn x _ quotient_neg
@@ -103,7 +105,7 @@ instance GrothendieckGroup [CommMonoid α]: CommGroup (quotient α) := {
     intros
     apply Quotient.sound
     exists 0
-    simp [add_assoc]
+    simp [op_assoc]
   identity := by
     constructor <;> (
       intro x
@@ -112,8 +114,8 @@ instance GrothendieckGroup [CommMonoid α]: CommGroup (quotient α) := {
       apply Quotient.sound
       exists 0
     )
-    repeat rw [add_zero_left]
-    repeat rw [add_zero_right]
+    repeat rw [op_unit_left]
+    repeat rw [op_unit_right]
   inverse := by
     constructor <;> (
       intro x
@@ -121,7 +123,7 @@ instance GrothendieckGroup [CommMonoid α]: CommGroup (quotient α) := {
       intro
       apply Quotient.sound
       exists 0
-      simp [add_comm]
+      simp [op_comm]
     )
   comm := by
     intro x y
@@ -129,5 +131,5 @@ instance GrothendieckGroup [CommMonoid α]: CommGroup (quotient α) := {
     intros
     apply Quotient.sound
     exists 0
-    simp [add_comm]
+    simp [op_comm]
 }

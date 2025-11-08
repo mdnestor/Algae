@@ -3,58 +3,28 @@
 Symmetric group, Cayley's theorem.
 
 TODO:
-- `Symm.embed_left`, `Symm.embed_right` are group actions and `Symm.embed_left_hom`, `Symm.embed_right_hom` are special cases of group actions being group homomorphisms to the symmetric group.
+- rewrite in terms of actions
+- show G is isomorphic to a subgroup of the permutations.
 
 -/
 
 import Algae.GroupTheory.Group
 import Algae.GroupTheory.Action
+import Algae.SetTheory.Function
 
-variable {α: Type u}
+open Group
 
-local instance [Monoid α]:  Add α := ⟨op⟩
-local instance [Monoid α]: Zero α := ⟨unit⟩
-local instance  [Group α]:  Neg α := ⟨inv⟩
-local instance  [Group α]:  Sub α := ⟨invop⟩
+variable {α: Type u} {β: Type v} {γ: Type w}
 
--- A structure for invertible functions. TODO: move elsewhere?
-@[ext] structure InvertiblePair (X: Type u) (Y: Type v) where
-  map: X → Y
-  inv: Y → X
-
-@[ext] structure LeftInvertible (X: Type u) (Y: Type v) extends InvertiblePair X Y where
-  id_left: inv ∘ map = id
-
-@[ext] structure RightInvertible (X: Type u) (Y: Type v) extends InvertiblePair X Y where
-  id_right: map ∘ inv = id
-
-@[ext] structure Invertible (X: Type u) (Y: Type v) extends LeftInvertible X Y, RightInvertible X Y
-
-def Invertible.id {X: Type u}: Invertible X X := {
-  map := Function.id
-  inv := Function.id
-  id_left := sorry
-  id_right := sorry
-}
-
-def Invertible.inverse {X Y: Type u} (f: Invertible X Y): Invertible Y X := {
-  map := f.inv
-  inv := f.map
-  id_left := sorry
-  id_right := sorry
-}
-
-def Invertible.comp {X Y Z: Type u} (f: Invertible X Y) (g: Invertible Y Z): Invertible X Z := {
-  map := g.map ∘ f.map
-  inv := f.inv ∘ g.inv
-  id_left := sorry
-  id_right := sorry
-}
+-- `Symm α` is the type of permutations on α,
+-- consisting of (f, g) pairs with fg = gf = id.
 
 abbrev Symm (α: Type u): Type u :=
   Invertible α α
 
-instance Symm.group (α: Type u): Group (Symm α) := {
+-- The symmetric group.
+
+instance Group.symm (α: Type u): Group (Symm α) := {
   op := flip Invertible.comp
   unit := Invertible.id
   identity := by constructor <;> (intro; ext; repeat rfl)
@@ -74,36 +44,34 @@ instance Symm.group (α: Type u): Group (Symm α) := {
 Cayley's theorem: every group is a subgroup of a symmetric group.
 i.e. every group can be embedded in some symmetric group.
 
+First we define the embedding from a group to the symmetric group on its elements
+via left addition.
+
 -/
 
--- First we define the mapping from a group to the symmetric group on its elements
--- given by left/right operation respectively.
-def Symm.embed_left (G: Group α) (g: α): Symm α := {
-  map := fun a ↦ g + a
-  inv := fun a ↦ -g + a
+def Group.symm_embed (G: Group α) (g: α): Symm α := {
+  map := λ a ↦  g + a
+  inv := λ a ↦ -g + a
   id_left := by
      ext a
-     simp
-     rw [←op_assoc]
-     rw [op_inv_left]
-     rw [op_unit_left]
-  id_right := sorry
+     calc
+       -g + (g + a)
+       _ = -g + g + a := by rw [op_assoc]
+       _ = 0 + a      := by rw [op_inv_left]
+       _ = a          := by rw [op_unit_left]
+  id_right := by
+    ext a
+    calc
+       g + (-g + a)
+       _ = g + -g + a := by rw [op_assoc]
+       _ = 0 + a      := by rw [op_inv_right]
+       _ = a          := by rw [op_unit_left]
 }
 
-def Symm.embed_right (G: Group α) (g: α): Symm α := {
-  map := fun a ↦ a + g
-  inv :=fun a ↦ a + -g
-  id_left := by
-     ext a
-     simp
-     rw [op_assoc]
-     rw [op_inv_right]
-     rw [op_unit_right]
-  id_right := sorry
-}
+-- Next we can show the embedding above is a group homomorphisms.
 
--- Next we can show the mappings above are group homomorphisms.
-theorem Symm.embed_left_hom [G: Group α]: GroupHom (Symm.embed_left G) := {
+def Group.symm_embed_hom (G: Group α): hom G (Group.symm α) := {
+  map := G.symm_embed
   unit_preserving := by
     ext a
     · exact op_unit_left a
@@ -128,38 +96,20 @@ theorem Symm.embed_left_hom [G: Group α]: GroupHom (Symm.embed_left G) := {
       _ = g + a := by rw [inv_inv]
 }
 
--- TODO: there is an opposite that needs to be inserted somewhere?
-theorem Symm.embed_right_hom [G: Group α]: GroupHom (Symm.embed_right G) := {
-  unit_preserving := by
-    ext a
-    · apply op_unit_right
-    · to_additive
-      simp [Symm.embed_right, inv_unit, op_unit_right]
-      rfl
-  op_preserving := by
-    intro g₁ g₂
-    ext a
-    to_additive
-    simp [Symm.embed_right]
-    calc
-      a + (g₁ + g₂)
-      _ = (a + g₂) + g₁ := by sorry
-    sorry
-  inv_preserving := by
-    sorry
-}
+-- Finally we show the embedding is injective.
 
-def Symm.unembed [Group α]: Symm α → α :=
+def Group.symm_unembed (G: Group α): Symm α → α :=
   λ π ↦ π.map 0
 
-def Symm.embed_left_invertible [G: Group α]: LeftInvertible α (Symm α) := {
-  map := Symm.embed_left G
-  inv := Symm.unembed
+def Group.symm_embed_left_invertible (G: Group α): LeftInvertible α (Symm α) := {
+  map := G.symm_embed
+  inv := G.symm_unembed
   id_left := by
     ext a
     exact op_unit_right a
 }
 
--- The image of `Symm.embed_left` is a subgroup of `Symm α`.
-example [G: Group α]: Subgroup (Set.range (Symm.embed_left G)) := by
-  exact Subgroup.image_hom Symm.embed_left_hom
+-- The image of the embedding is a subgroup.
+
+theorem Group.symm_embed_subgroup (G: Group α): (Group.symm α).sub (Set.range G.symm_embed) := by
+  exact G.symm_embed_hom.image_sub

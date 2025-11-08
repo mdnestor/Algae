@@ -3,24 +3,18 @@ import Algae.SetTheory.Subset
 
 variable {α: Type u} {β: Type v} {γ: Type w}
 
+
+
 class Pointed (α: Type u) where
   unit: α
 
+
+
 export Pointed (unit)
-
--- local instance [Pointed α]: Zero α := {
---   zero := unit
--- }
-
--- instance [Pointed α]: One α := {
---   one := unit
--- }
-
--- theorem zero_eq [Pointed α]: (0: α) = unit := by
---   rfl
-
--- theorem one_eq [Pointed α]: (1: α) = unit := by
---   rfl
+namespace Pointed
+scoped instance [Pointed α]: Zero α := ⟨unit⟩
+end Pointed
+open Pointed
 
 
 
@@ -28,43 +22,46 @@ def Pointed.make (a: α): Pointed α := {
   unit := a
 }
 
-class PointedHom [Pointed α] [Pointed β] (f: α → β): Prop where
-  unit_preserving: f unit = unit
 
-theorem PointedHom.id [Pointed α]: PointedHom (@Function.id α) := {
+
+class Pointed.hom (P₁: Pointed α) (P₂: Pointed β) where
+  map: α → β
+  unit_preserving: map 0 = 0
+
+def Pointed.hom.id (P: Pointed α): hom P P := {
+  map := Function.id
   unit_preserving := rfl
 }
 
-theorem PointedHom.comp [Pointed α] [Pointed β] [Pointed γ] {f: α → β} {g: β → γ} (hf: PointedHom f) (hg: PointedHom g): PointedHom (g ∘ f) := {
-  unit_preserving := by simp [hg.unit_preserving, hf.unit_preserving]
+def Pointed.hom.comp {P₁: Pointed α} {P₂: Pointed β} {P₃: Pointed γ} (f: hom P₁ P₂) (g: hom P₂ P₃): hom P₁ P₃ := {
+  map := g.map ∘ f.map
+  unit_preserving := by simp [g.unit_preserving, f.unit_preserving]
 }
 
 
 
-class Subpointed [Pointed α] (S: Set α): Prop where
-  unit_mem: unit ∈ S
+class Pointed.sub (P: Pointed α) (S: Set α): Prop where
+  unit_mem: 0 ∈ S
 
-theorem Subpointed.full [Pointed α]: Subpointed (Set.full α) := {
+theorem Pointed.sub.full (P: Pointed α): P.sub (Set.full α) := {
   unit_mem := trivial
 }
 
-theorem Subpointed.image_hom [Pointed α] [Pointed β] {f: α → β} (hf: PointedHom f): Subpointed (Set.range f) := {
+theorem Pointed.hom.image_sub {P₁: Pointed α} {P₂: Pointed β} (f: hom P₁ P₂): P₂.sub (Set.range f.map) := {
   unit_mem := by
-    rw [←hf.unit_preserving]
+    rw [←f.unit_preserving]
     apply Set.range_mem
 }
 
 -- TODO: subpointed union, inter, subset
 
-instance Pointed.product [Pointed α] [Pointed β]: Pointed (α × β) := {
-  unit := (unit, unit)
+instance Pointed.product (P₁: Pointed α) (P₂: Pointed β): Pointed (α × β) := {
+  unit := (0, 0)
 }
 
+def Pointed.hom.kernel {P₁: Pointed α} {P₂: Pointed β} (f: hom P₁ P₂): Set α :=
+  λ a => f.map a = 0
 
-
-def Kernel [Pointed β] (f: α → β): Set α :=
-  λ a => f a = unit
-
-theorem kernel_subpointed [Pointed α] [Pointed β] {f: α → β} (hf: PointedHom f): Subpointed (Kernel f) := {
-  unit_mem := hf.unit_preserving
+theorem Pointed.kernel.sub {P₁: Pointed α} {P₂: Pointed β} (f: hom P₁ P₂): P₁.sub f.kernel := {
+  unit_mem := f.unit_preserving
 }

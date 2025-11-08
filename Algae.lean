@@ -5,13 +5,13 @@ import Algae.GroupTheory.Center
 import Algae.GroupTheory.CyclicGroup
 import Algae.GroupTheory.DihedralGroup
 import Algae.GroupTheory.Generators
--- import Algae.GroupTheory.GrothendieckGroup
+import Algae.GroupTheory.GrothendieckGroup
 import Algae.GroupTheory.Group
 import Algae.GroupTheory.Magma
 import Algae.GroupTheory.Monoid
 import Algae.GroupTheory.NormalSubgroup
-import Algae.GroupTheory.Permutations
 import Algae.GroupTheory.Pointed
+import Algae.GroupTheory.SymmetricGroup
 import Algae.RingTheory.Fibonacci
 import Algae.RingTheory.Field
 import Algae.RingTheory.Localization

@@ -3,18 +3,17 @@ import Algae.GroupTheory.Action
 
 variable {α: Type u}
 
-local instance [Monoid α]: Add α := ⟨op⟩
-local instance [Monoid α]: Zero α := ⟨unit⟩
-local instance [Group α]: Neg α := ⟨inv⟩
+open Group
 
 def Conjugate [Group α] (g: α): α → α :=
-  λ a ↦ op (op (inv g) a) g
+  λ a ↦ (-g + a) + g
 
 def Conjugate.action [Group α]: Action α α := {
   act := Conjugate
-  act_op := by
+  op := by
     intro a b x
-    to_additive
+    simp [Conjugate]
+    apply Eq.symm
     calc
        (-(a + b) + x) + (a + b)
        _ = ((-b + -a) + x) + (a + b) := by rw [inv_op]
@@ -23,23 +22,21 @@ def Conjugate.action [Group α]: Action α α := {
        _ = -b + ((-a + x) + (a + b)) := by rw [op_assoc (-b)]
        _ = -b + ((-a + x) + (a + b)) := by sorry
        _ = -b + (-a + x + a) + b := by sorry
-  act_id := by
+  id := by
     intro
     rw [Conjugate]
-    to_additive
     rw [inv_unit, op_unit_left, op_unit_right]
 }
 
-class NormalSubgroup [Group α] (S: Set α) extends Subgroup S where
+class Group.normalSubgroup [G: Group α] (S: Set α) extends toSubgroup: G.sub S where
   conj_invariant: Conjugate.action.invariant_set S
 
 theorem CommGroup.conjugate_trivial [CommGroup α] (g: α): Conjugate g = Function.id := by
   funext
   rw [Conjugate, op_comm]
-  to_additive
   rw [←op_assoc, op_inv_right, op_unit_left, Function.id]
 
-theorem CommGroup.subgroup_normal [CommGroup α] {S: Set α} (h: Subgroup S): NormalSubgroup S := by
+theorem CommGroup.subgroup_normal [G: CommGroup α] {S: Set α} (h: G.sub S): G.normalSubgroup S := by
   constructor
   intro _ _ hx
   simp [Conjugate.action, CommGroup.conjugate_trivial]
@@ -61,7 +58,7 @@ theorem Coset.equivalence [Magma α] (S: Set α): Equivalence (Coset.relation S)
 def Coset.quotient [Magma α] (S: Set α): Type u :=
   Quotient ⟨Coset.relation S, Coset.equivalence S⟩
 
-def QuotientGroup [Group α] (H: Set α) (h: NormalSubgroup H): Group (Coset.quotient H) := {
+def QuotientGroup [G: Group α] (H: Set α) (h: G.normalSubgroup H): Group (Coset.quotient H) := {
   unit := Quotient.mk _ unit
   op := sorry
   identity := sorry

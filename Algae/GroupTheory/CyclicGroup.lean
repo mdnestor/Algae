@@ -2,7 +2,7 @@ import Algae.GroupTheory.Group
 
 variable {α: Type u}
 
-def CyclicGroup {n: ℕ} (hn: 0 < n): Group (Fin n) := {
+def CyclicGroup {n: Nat} (hn: 0 < n): Group (Fin n) := {
   unit := ⟨0, hn⟩
   op := λ a b ↦ a + b
   identity := by

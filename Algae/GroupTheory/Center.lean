@@ -2,23 +2,24 @@ import Algae.GroupTheory.Group
 
 variable {α: Type u}
 
-local instance [Magma α]: Add α := ⟨op⟩
-local instance [Pointed α]: Zero α := ⟨unit⟩
-local instance [Group α]: Neg α := ⟨inv⟩
+open Group
 
--- The center is the set of elements
--- that commute with every other element
-def Center (α: Type u) [Magma α]: Set α :=
+-- The center is the set of elements that commute with every other element
+
+def Magma.center (M: Magma α): Set α :=
   λ z ↦ ∀ m, z + m = m + z
 
-theorem Center.submonoid [Monoid α]: Submonoid (Center α) := {
+-- The center is a submonoid/subgroup respectively.
+
+theorem Monoid.center_submonoid (M: Monoid α): M.sub M.center := {
   unit_mem := by
-    intro
-    to_additive
-    rw [op_unit_right]
+    intro a
+    calc
+      0 + a
+      _ = a     := by rw [op_unit_left]
+      _ = a + 0 := by rw [op_unit_right]
   op_closed := by
     intro x y hx hy m
-    to_additive
     calc
       x + y + m
       _ = x + (y + m) := by rw [op_assoc]
@@ -27,10 +28,10 @@ theorem Center.submonoid [Monoid α]: Submonoid (Center α) := {
       _ = m + x + y   := by rw [hx]
       _ = m + (x + y) := by rw [op_assoc]
 }
---      ...
-theorem Center.subgroup [Group α]: Subgroup (Center α) := {
-  unit_mem := Center.submonoid.unit_mem
-  op_closed := Center.submonoid.op_closed
+
+theorem Group.center_subgroup (G: Group α): G.sub G.center := {
+  unit_mem := G.center_submonoid.unit_mem
+  op_closed := G.center_submonoid.op_closed
   inv_closed := by
     intro a h m
     calc

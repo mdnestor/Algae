@@ -45,3 +45,36 @@ def Function.associator_inverse (A: Type u) (B: Type v) (C: Type w): (A × B) ×
 
 def switch (f: α → β → γ): β → α → γ :=
   λ b a ↦ f a b
+
+@[ext] structure InvertiblePair (α: Type u) (β: Type v) where
+  map: α → β
+  inv: β → α
+
+@[ext] structure LeftInvertible (α: Type u) (β: Type v) extends InvertiblePair α β where
+  id_left: inv ∘ map = id
+
+@[ext] structure RightInvertible (α: Type u) (β: Type v) extends InvertiblePair α β where
+  id_right: map ∘ inv = id
+
+@[ext] structure Invertible (α: Type u) (β: Type v) extends LeftInvertible α β, RightInvertible α β
+
+def Invertible.id {α: Type u}: Invertible α α := {
+  map := Function.id
+  inv := Function.id
+  id_left := sorry
+  id_right := sorry
+}
+
+def Invertible.inverse (f: Invertible α β): Invertible β α := {
+  map := f.inv
+  inv := f.map
+  id_left := sorry
+  id_right := sorry
+}
+
+def Invertible.comp (f: Invertible α β) (g: Invertible β γ): Invertible α γ := {
+  map := g.map ∘ f.map
+  inv := f.inv ∘ g.inv
+  id_left := sorry
+  id_right := sorry
+}

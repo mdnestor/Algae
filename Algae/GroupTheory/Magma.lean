@@ -1,66 +1,78 @@
 import Algae.SetTheory.Function
 import Algae.SetTheory.Subset
 
-variable {α: Type u}
+variable {α: Type u} {β: Type v} {γ: Type w}
+
+/-
+
+A magma is just a set with an operation.
+
+-/
 
 class Magma (α: Type u) where
   op: α → α → α
 
-export Magma (op)
-
--- instance [Magma α]: Add α := {
---   add := op
--- }
-
--- instance [Magma α]: Mul α := {
---   mul := op
--- }
-
--- theorem add_eq [Magma α] (a b: α): a + b = op a b := by
---   rfl
-
--- theorem mul_eq [Magma α] (a b: α): a * b = op a b := by
---   rfl
-
 class CommMagma (α: Type u) extends Magma α where
-  comm: ∀ x y, op x y = op y x
+  comm: Commutative op
 
-theorem op_comm [CommMagma α] (a b: α): op a b = op b a := by
+
+
+
+export Magma (op)
+namespace Magma
+scoped instance [Magma α]: Add α := ⟨op⟩
+end Magma
+
+open Magma
+
+
+
+theorem op_comm [CommMagma α] (a b: α): a + b = b + a := by
   exact CommMagma.comm a b
 
--- theorem mul_comm [CommMagma α] (a b: α): a * b = b * a := by
---   apply add_comm
+
+
+-- A magma homomorphism preserves the operation.
+
+class Magma.hom (M₁: Magma α) (M₂: Magma β) where
+  map: α → β
+  op_preserving: ∀ a b, map (a + b) = map a + map b
+
+
+def Magma.hom.id (M: Magma α): hom M M := {
+  map := Function.id
+  op_preserving := by intros; rfl
+}
+
+def Magma.hom.comp {M₁: Magma α} {M₂: Magma β} {M₃: Magma γ} (f: hom M₁ M₂) (g: hom M₂ M₃): hom M₁ M₃ := {
+  map := g.map ∘ f.map
+  op_preserving := by intros; simp [f.op_preserving, g.op_preserving]
+}
+
+
+-- A submagma is a subset which is closed under the operation.
+
+class Magma.sub (M: Magma α) (S: Set α): Prop where
+  op_closed: ∀ a b, a ∈ S → b ∈ S → a + b ∈ S
+
+-- The image of a magma homomorphism is a submagma.
+
+theorem Magma.hom.image_sub {M₁: Magma α} {M₂: Magma β} (f: hom M₁ M₂): Magma.sub M₂ (Set.range f.map) := {
+  op_closed := by
+    intro _ _ ⟨a₁, ha₁⟩ ⟨a₂, ha₂⟩
+    rw [←ha₁, ←ha₂, ←f.op_preserving]
+    apply Set.range_mem
+}
+
+-- The opposite magma has the flipped operation.
 
 def Magma.opposite (M: Magma α): Magma α := {
   op := flip op
 }
 
+-- If a magma is commutative, so is its opposite.
+
 def CommMagma.opposite (M: CommMagma α): CommMagma α := {
-  op := M.toMagma.opposite.op
+  op := (Magma.opposite M.toMagma).op
   comm := by intro x y; exact comm y x
-}
-
-
-
-class MagmaHom [Magma α] [Magma β] (f: α → β): Prop where
-  op_preserving: ∀ a b: α, f (op a b) = op (f a) (f b)
-
-theorem MagmaHom.id (α: Type u) [Magma α]: MagmaHom (@Function.id α) := by
-  sorry
-
-theorem MagmaHom.comp [Magma α] [Magma β] [Magma γ]
-  {f: α → β} {g: β → γ} (hf: MagmaHom f) (hg: MagmaHom g)
-  : MagmaHom (g ∘ f) := by
-  sorry
-
-
-
-class Submagma [Magma α] (S: Set α): Prop where
-  op_closed: ∀ a b, a ∈ S → b ∈ S → op a b ∈ S
-
-theorem Submagma.image_hom [Magma α] [Magma β] {f: α → β} (hf: MagmaHom f): Submagma (Set.range f) := {
-  op_closed := by
-    intro _ _ ⟨a₁, ha₁⟩ ⟨a₂, ha₂⟩
-    rw [←ha₁, ←ha₂, ←hf.op_preserving]
-    apply Set.range_mem
 }

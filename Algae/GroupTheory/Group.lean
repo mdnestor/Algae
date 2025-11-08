@@ -1,37 +1,39 @@
 import Algae.GroupTheory.Monoid
 
-variable {α: Type u}
+variable {α: Type u} {β: Type v} {γ: Type w}
+
+
+
+/-
+
+A group is a monoid with inverses.
+
+-/
 
 class Group (α: Type u) extends Monoid α where
   inv: α → α
   inverse: Inverse op inv unit
 
+class CommGroup (α: Type u) extends Group α, CommMonoid α
+
+
+
+
+-- Introduces notation +, 0, and - for groups.
 export Group (inv)
+namespace Group
+scoped instance [Magma α]: Add α := ⟨op⟩
+scoped instance [Pointed α]: Zero α := ⟨unit⟩
+scoped instance [Group α]: Neg α := ⟨inv⟩
+def opinv [Group α] (a b: α): α := a + -b
+scoped instance [Group α]: Sub α := ⟨opinv⟩
+end Group
 
-def invop [Group α] (a b: α): α :=
-  op a (inv b)
+open Group
 
-local instance [Magma α]: Add α := ⟨op⟩
-local instance [Pointed α]: Zero α := ⟨unit⟩
-local instance [Group α]: Neg α := ⟨inv⟩
-local instance [Group α]: Sub α := ⟨invop⟩
 
-theorem zero_eq [Pointed α]: (0: α) = unit := rfl
-theorem add_eq [Magma α] (a b: α): a + b = op a b := rfl
-theorem neg_eq [Group α] (a: α): -a = inv a := rfl
-theorem sub_eq [Group α] (a b: α): a - b = invop a b := rfl
-theorem sub_eq' [Group α] (a b: α): a - b = a + -b := rfl
 
-macro "to_generic": tactic =>
-  `(tactic| try simp [add_eq, zero_eq, mul_eq, one_eq])
-
-macro "to_additive": tactic =>
-  `(tactic| (to_generic; simp [←add_eq, ←zero_eq, ←neg_eq, ←sub_eq]))
-
--- macro "to_multiplicative": tactic =>
---   `(tactic| (to_generic; simp [←mul_eq, ←one_eq]))
-
--- Unpacking group axioms for both notations
+-- Unpacking axioms with notation.
 
 theorem op_inv_left [Group α] (a: α): -a + a = 0 := by
   exact Group.inverse.left a
@@ -39,25 +41,12 @@ theorem op_inv_left [Group α] (a: α): -a + a = 0 := by
 theorem op_inv_right [Group α] (a: α): a + -a = 0 := by
   exact Group.inverse.right a
 
--- Opposite group
--- TODO: is there a way to employ this usefully..? avoid repeating arguments?
-def Group.opposite [Group α]: Group α := {
-  op := Group.toMonoid.opposite.op
-  identity := Group.toMonoid.opposite.identity
-  assoc := Group.toMonoid.opposite.assoc
-  inv := inv
-  inverse := ⟨inverse.right, inverse.left⟩
-}
-
-
-class CommGroup (α: Type u) extends Group α, CommMonoid α
-
 theorem inverses_inv [Group α] (a: α): inverses a (-a) := by
   constructor
   exact op_inv_right a
   exact op_inv_left a
 
-theorem op_cancel_left [Group G] {a b c: G} (h: a + b = a + c): b = c := by
+theorem op_cancel_left [Group α] {a b c: α} (h: a + b = a + c): b = c := by
   calc b
     _ = 0 + b        := by rw [op_unit_left]
     _ = -a + a + b   := by rw [op_inv_left]
@@ -67,7 +56,7 @@ theorem op_cancel_left [Group G] {a b c: G} (h: a + b = a + c): b = c := by
     _ = 0 + c        := by rw [op_inv_left]
     _ = c            := by rw [op_unit_left]
 
-theorem op_cancel_right [Group G] {a b c: G} (h: a + c = b + c): a = b := by
+theorem op_cancel_right [Group α] {a b c: α} (h: a + c = b + c): a = b := by
   calc a
   _ = a + 0        := by rw [op_unit_right]
   _ = a + (c + -c) := by rw [op_inv_right]
@@ -83,22 +72,27 @@ theorem op_unit_inverses [Group α] {a b: α} (h: a + b = 0): -a = b := by
   -- exact h
   sorry
 
-theorem inv_unit [Group G]: -(0: G) = 0 := by
+theorem inv_unit [Group α]: -(0: α) = 0 := by
   apply op_unit_inverses
   apply op_unit_left
 
-theorem inv_inv [Group G] (a: G): -(-a) = a := by
+theorem inv_inv [Group α] (a: α): -(-a) = a := by
   apply op_cancel_right (c := -a)
   rw [op_inv_left, op_inv_right]
 
-theorem invop_self [Group α] (a: α): a - a = 0 := by
+theorem opinv_self [Group α] (a: α): a - a = 0 := by
   apply op_inv_right
 
 theorem inv_invop [Group α] (a: α): -(a - b) = b - a := by
   apply op_unit_inverses
-  simp [sub_eq']
-  rw [op_assoc, ←op_assoc (-b)]
-  rw [op_inv_left, op_unit_left, op_inv_right]
+  calc
+    a - b + (b - a)
+    _ = a + -b + (b + -a)   := by rfl
+    _ = a + (-b + (b + -a)) := by rw [op_assoc]
+    _ = a + (-b + b + -a)   := by rw [op_assoc]
+    _ = a + (0 + -a)        := by rw [op_inv_left]
+    _ = a + -a              := by rw [op_unit_left]
+    _ = 0                   := by rw [op_inv_right]
 
 -- In a group we can define integer multiplication via
 -- 0 * a = 0, 1 * a = a, 2 * a = a + a, ... and -1 * a = 1 * -a, -2 * a = 2 * (-a), ...
@@ -116,9 +110,7 @@ def Group.zmul [Group α] (k: Int) (a: α): α :=
   | Int.ofNat n => n • a
   | Int.negSucc n => n.succ • -a
 
-instance [Group G]: SMul Int G := {
-  smul := Group.zmul
-}
+instance [Group α]: SMul Int α := ⟨Group.zmul⟩
 
 
 theorem zmul_zero [Group α] (a: α): (0: Int) • a = (0: α) := by
@@ -154,8 +146,7 @@ theorem zmul_neg [Group α] (a: α) (n: Int): n • (-a) = -n • a := by
 
 
 
--- Sanity check to make sure everything works.
-theorem square_self_zero [Group G] {a: G} (h: 2 • a = a): a = 0 := by
+theorem square_self_zero [Group α] {a: α} (h: 2 • a = a): a = 0 := by
   calc
     a
     _ = 0 + a        := by rw [op_unit_left]
@@ -165,16 +156,9 @@ theorem square_self_zero [Group G] {a: G} (h: 2 • a = a): a = 0 := by
     _ = -a + a       := by rw [h]
     _ = 0            := by rw [op_inv_left]
 
--- TODO theorem: if a*b = e then a = b⁻¹.
 
-
--- alternatively could show the map a ↦ a⁻¹ is an involution?
-
-
--- "socks shoes" property
-theorem inv_op [Group G] (a b: G): -(a + b) = -b + -a := by
-  --apply op_unit_inverses
-  --to_additive
+-- "Socks shoes" property
+theorem inv_op [Group α] (a b: α): -(a + b) = -b + -a := by
   repeat rw [←neg_eq]
   apply op_cancel_right (c := (a + b))
   rw [op_inv_left]
@@ -182,42 +166,56 @@ theorem inv_op [Group G] (a b: G): -(a + b) = -b + -a := by
   calc
     -b + -a + (a + b)
     _ = -b + (-a + (a + b)) := by rw [op_assoc]
-    _ = -b + ((-a + a) + b) := by rw [op_assoc]
+    _ = -b + (-a + a + b)   := by rw [op_assoc]
     _ = -b + (0 + b)        := by rw [op_inv_left]
     _ = -b + b              := by rw [op_unit_left]
     _ = 0                   := by rw [op_inv_left]
 
--- Fix a ∈ G. Then the map G → G defined by b ↦ a * b is a bijection (permutation) on G.
-theorem Group.self_bijective [Group G] (a: G): Function.Bijective (λ b ↦ a + b) := by
-  sorry
 
 
+-- A group homomorphism is a monoid homomorphism which also preserves inverses.
 
-class GroupHom [Group α] [Group β] (f: α → β): Prop extends MonoidHom f where
-  inv_preserving: ∀ a, f (-a) = -(f a)
+class Group.hom (G₁: Group α) (G₂: Group β)
+  extends toMonoidHom: Monoid.hom G₁.toMonoid G₂.toMonoid where
+  inv_preserving: ∀ a, map (-a) = -(map a)
 
-class Subgroup [Group α] (S: Set α) extends Submonoid S where
-  inv_closed: ∀ a, a ∈ S → inv a ∈ S
+-- A subgroup is a submonoid which is also closed under inverses.
 
-theorem Subgroup.image_hom [Group α] [Group β] {f: α → β} (hf: GroupHom f): Subgroup (Set.range f) := {
-  unit_mem := (Subpointed.image_hom hf.toPointedHom).unit_mem
-  op_closed := (Submagma.image_hom hf.toMagmaHom).op_closed
+class Group.sub (G: Group α) (S: Set α) extends G.toMonoid.sub S where
+  inv_closed: ∀ a, a ∈ S → -a ∈ S
+
+
+-- The image of a group homomorphism is a subgroup.
+
+theorem Group.hom.image_sub (G₁: Group α) (G₂: Group β) (f: hom G₁ G₂): G₂.sub (Set.range f.map) := {
+  unit_mem := (Monoid.hom.image_sub f.toMonoidHom).unit_mem
+  op_closed := (Monoid.hom.image_sub f.toMonoidHom).op_closed
   inv_closed := by
     intro _ ⟨a, ha⟩
-    to_additive
-    rw [←ha, ←hf.inv_preserving]
+    rw [←ha, ←f.inv_preserving]
     apply Set.range_mem
 }
 
-theorem kernel_subgroup [Group α] [Group β] {f: α → β} (hf: GroupHom f): Subgroup (Kernel f) := {
-  unit_mem := (Kernel.submonoid hf.toMonoidHom).unit_mem
-  op_closed := (Kernel.submonoid hf.toMonoidHom).op_closed
+-- The kernel is a subgroup.
+
+theorem Group.kernel_sub (G₁: Group α) (G₂: Group β) (f: hom G₁ G₂): G₁.sub f.kernel := {
+  unit_mem := (Monoid.kernel_sub f.toMonoidHom).unit_mem
+  op_closed := (Monoid.kernel_sub f.toMonoidHom).op_closed
   inv_closed := by
     intro x hx
     calc
-      f (-x)
-      _ = -(f x) := by rw [hf.inv_preserving]
-      _ = -unit := by rw [hx]
-      _ = -0 := by rfl
+      f.map (-x)
+      _ = -(f.map x) := by rw [f.inv_preserving]
+      _ = -0 := by rw [hx]
       _ = 0 := by rw [inv_unit]
+}
+
+-- The opposite group.
+
+def Group.opposite (G: Group α): Group α := {
+  op := Group.toMonoid.opposite.op
+  identity := Group.toMonoid.opposite.identity
+  assoc := Group.toMonoid.opposite.assoc
+  inv := inv
+  inverse := ⟨inverse.right, inverse.left⟩
 }

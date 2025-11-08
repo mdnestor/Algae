@@ -1,47 +1,56 @@
 import Algae.RingTheory.Ring
 
-open Ring
+open Group Ring
 
 variable {α: Type u}
+
+/-
+
+Ringonacci B)
+
+-/
 
 def Magma.fibonacci [Magma α] (f₀ f₁: α): Nat → α :=
   λ n ↦ match n with
   | 0 => f₀
   | 1 => f₁
-  | p + 2 => op (fibonacci f₀ f₁ p) (fibonacci f₀ f₁ (p + 1))
+  | p + 2 => fibonacci f₀ f₁ p + fibonacci f₀ f₁ (p + 1)
 
 def Monoid.fibonacci [Monoid α] (f₁: α): Nat → α :=
-  Magma.fibonacci unit f₁
+  Magma.fibonacci 0 f₁
 
-def Ring.fibonacci [Ring α]: ℕ → α :=
-  @Monoid.fibonacci α Ring.add_struct.toMonoid Ring.one
+def Ring.fibonacci [Ring α]: Nat → α :=
+  @Monoid.fibonacci α Ring.add_struct.toMonoid 1
 
-def PartialSum [Magma α] (a: ℕ → α) (n: ℕ): α :=
+def PartialSum [Magma α] (a: Nat → α) (n: Nat): α :=
   match n with
   | 0 => a 0
-  | p + 1 => op (PartialSum a p) (a (p + 1))
+  | p + 1 => PartialSum a p + a (p + 1)
 
-def PartialSum₀ [Monoid α] (a: ℕ → α) (n: ℕ): α :=
+def PartialSum₀ [Monoid α] (a: Nat → α) (n: Nat): α :=
   match n with
-  | 0 => unit
-  | p + 1 => op (PartialSum₀ a p) (a p)
+  | 0 => 0
+  | p + 1 => PartialSum₀ a p + a p
 
-example [Monoid α] (a: ℕ → α) (n: ℕ): PartialSum a n = PartialSum₀ a (n + 1) := by
+example [Monoid α] (a: Nat → α) (n: Nat): PartialSum a n = PartialSum₀ a (n + 1) := by
   sorry
 
-theorem Magma.fibonacci_partial_sum [CommMonoid α] (f₀ f₁: α) (n: ℕ):
-  op (PartialSum (fibonacci f₀ f₁) (n + 1)) f₁ = fibonacci f₀ f₁ (n + 3) := by
+theorem Magma.fibonacci_partial_sum [CommMonoid α] (f₀ f₁: α) (n: Nat):
+  PartialSum (fibonacci f₀ f₁) (n + 1) + f₁ = fibonacci f₀ f₁ (n + 3) := by
   induction n with
   | zero => simp [PartialSum, fibonacci, op_comm]
-  | succ p hp => calc
-    op (PartialSum (fibonacci f₀ f₁) (p + 2)) f₁
-    _ = op (op (PartialSum (fibonacci f₀ f₁) (p + 1)) (fibonacci f₀ f₁ (p + 2))) f₁ := by rfl
-    _ = op f₁ (op (PartialSum (fibonacci f₀ f₁) (p + 1)) (fibonacci f₀ f₁ (p + 2))) := by rw [op_comm]
-    _ = op (op f₁ (PartialSum (fibonacci f₀ f₁) (p + 1))) (fibonacci f₀ f₁ (p + 2)) := by to_additive; rw [op_assoc]
-    _ = op (op (PartialSum (fibonacci f₀ f₁) (p + 1)) f₁) (fibonacci f₀ f₁ (p + 2)) := by rw [op_comm f₁]
-    _ = op (fibonacci f₀ f₁ (p + 3)) (fibonacci f₀ f₁ (p + 2)) := by rw [hp]
-    _ = op (fibonacci f₀ f₁ (p + 2)) (fibonacci f₀ f₁ (p + 3)) := by rw [op_comm]
-    _ = fibonacci f₀ f₁ (p + 4) := by rfl
+  | succ p hp =>
+    let F := fibonacci f₀ f₁
+    let σ := PartialSum F
+    calc
+               σ (p + 2)              + f₁
+    _ =        σ (p + 1)  + F (p + 2) + f₁ := by rfl
+    _ =  f₁ + (σ (p + 1)  + F (p + 2))     := by rw [op_comm]
+    _ = (f₁ +  σ (p + 1)) + F (p + 2)      := by rw [op_assoc]
+    _ = (σ (p + 1)  + f₁) + F (p + 2)      := by rw [op_comm f₁]
+    _ =         F (p + 3) + F (p + 2)      := by rw [hp]
+    _ =         F (p + 2) + F (p + 3)      := by rw [op_comm]
+    _ =         F (p + 4)                  := by rfl
 
 
 def Fibonacci [Ring α]: Nat → α :=
