@@ -35,10 +35,10 @@ instance: EmptyCollection (Set α) := {
 }
 
 theorem Set.empty_subset (A: Set α): ∅ ⊆ A := by
-  exact fun _ => False.elim
+  exact λ _ ↦ False.elim
 
 theorem Set.subset_full (A: Set α): A ⊆ Set.full α := by
-  exact fun _ _ => trivial
+  exact λ _ _ ↦ trivial
 
 def Set.inter (A B: Set α): Set α :=
   λ x ↦ x ∈ A ∧ x ∈ B
@@ -157,12 +157,12 @@ example: Distributive (@Set.union α) (@Set.inter α) := by
       | inl h => exact ⟨Or.inl h, Or.inl h⟩
       | inr h => exact ⟨Or.inr h.left, Or.inr h.right⟩
     · intro ⟨hab, hac⟩
-      by_cases h : x ∈ A
+      by_cases h: x ∈ A
       · exact Or.inl h
-      · have hb : x ∈ B := by cases hab with
+      · have hb: x ∈ B := by cases hab with
         | inl ha => contradiction
         | inr hb => exact hb
-        have hc : x ∈ C := by cases hac with
+        have hc: x ∈ C := by cases hac with
         | inl ha => contradiction
         | inr hc => exact hc
         exact Or.inr ⟨hb, hc⟩
@@ -175,12 +175,12 @@ example: Distributive (@Set.union α) (@Set.inter α) := by
       | inl h => exact ⟨Or.inl h.left, Or.inl h.right⟩
       | inr h => exact ⟨Or.inr h, Or.inr h⟩
     · intro ⟨hac, hbc⟩
-      by_cases h : x ∈ C
+      by_cases h: x ∈ C
       · exact Or.inr h
-      · have ha : x ∈ A := by cases hac with
+      · have ha: x ∈ A := by cases hac with
         | inl ha => exact ha
         | inr hc => contradiction
-        have hb : x ∈ B := by cases hbc with
+        have hb: x ∈ B := by cases hbc with
         | inl hb => exact hb
         | inr hc => contradiction
         exact Or.inl ⟨ha, hb⟩
@@ -192,9 +192,9 @@ example: Distributive (@Set.inter α) (@Set.union α) := by
     simp
     constructor
     · intro ⟨ha, hbc⟩
-      by_cases hb : x ∈ B
+      by_cases hb: x ∈ B
       · exact Or.inl ⟨ha, hb⟩
-      · have hc : x ∈ C := by cases hbc with
+      · have hc: x ∈ C := by cases hbc with
         | inl hb' => contradiction
         | inr hc => exact hc
         exact Or.inr ⟨ha, hc⟩

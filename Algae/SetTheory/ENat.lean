@@ -15,7 +15,7 @@ abbrev 𝔼: Type :=
   ENat
 
 instance: Coe Nat 𝔼 := {
-  coe := fun n => Sum.inl n
+  coe := λ n ↦ Sum.inl n
 }
 
 instance {n: Nat}: OfNat 𝔼 (n: Nat) := {
@@ -31,7 +31,7 @@ instance: DecidableEq 𝔼 :=
   instDecidableEqSum
 
 def add: Op 𝔼 :=
-  fun a b => match a with
+  λ a b ↦ match a with
     | Sum.inl a => match b with
       | Sum.inl b => a + b
       | Sum.inr _ => infty
@@ -42,7 +42,7 @@ instance: Add 𝔼 := {
 }
 
 def mul: Op 𝔼 :=
-  fun a b => match a with
+  λ a b ↦ match a with
     | Sum.inl a => match b with
       | Sum.inl b => a * b
       | Sum.inr _ => if a = 0 then 0 else infty
@@ -53,7 +53,7 @@ instance: Mul 𝔼 := {
 }
 
 def le: Endorelation 𝔼 :=
-  fun a b => match b with
+  λ a b ↦ match b with
     | Sum.inl b => match a with
       | Sum.inl a => a ≤ b
       | Sum.inr _ => False
@@ -64,7 +64,7 @@ instance: LE 𝔼 := {
 }
 
 instance LE.toLT {α: Type u} [LE α]: LT α := {
-  lt := fun a b => a ≤ b ∧ a ≠ b
+  lt := λ a b ↦ a ≤ b ∧ a ≠ b
 }
 
 def lt: Endorelation 𝔼 :=

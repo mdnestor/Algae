@@ -17,11 +17,7 @@ def Conjugate.action [Group α]: Action α α := {
     calc
        (-(a + b) + x) + (a + b)
        _ = ((-b + -a) + x) + (a + b) := by rw [inv_op]
-       _ = (-b + (-a + x)) + (a + b) := by rw [op_assoc (-b)]
-       _ = -b + (-a + x) + (a + b) := by rw [op_assoc (-b)]
-       _ = -b + ((-a + x) + (a + b)) := by rw [op_assoc (-b)]
-       _ = -b + ((-a + x) + (a + b)) := by sorry
-       _ = -b + (-a + x + a) + b := by sorry
+       _ = -b + (-a + x + a) + b := by simp [op_assoc]
   id := by
     intro
     rw [Conjugate]
@@ -33,8 +29,7 @@ class Group.normalSubgroup [G: Group α] (S: Set α) extends toSubgroup: G.sub S
 
 theorem CommGroup.conjugate_trivial [CommGroup α] (g: α): Conjugate g = Function.id := by
   funext
-  rw [Conjugate, op_comm]
-  rw [←op_assoc, op_inv_right, op_unit_left, Function.id]
+  rw [Conjugate, op_comm, ←op_assoc, op_inv_right, op_unit_left, Function.id]
 
 theorem CommGroup.subgroup_normal [G: CommGroup α] {S: Set α} (h: G.sub S): G.normalSubgroup S := by
   constructor

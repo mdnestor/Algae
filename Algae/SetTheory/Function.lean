@@ -18,10 +18,10 @@ theorem Function.inverses_id: inverses (@id α) (@id α) := by
 theorem Function.inverses_comp (hf: inverses f f') (hg: inverses g g'): inverses (g ∘ f) (f' ∘ g') := by
   calc
     (f' ∘ g') ∘ g ∘ f
-  _ = f' ∘ (g' ∘ g) ∘ f := by rfl
-  _ = f' ∘ id ∘ f := by rw [hg]
-  _ = f' ∘ f := by rfl
-  _ = id := by rw [hf]
+    _ = f' ∘ (g' ∘ g) ∘ f := by rfl
+    _ = f' ∘ id ∘ f := by rw [hg]
+    _ = f' ∘ f := by rfl
+    _ = id := by rw [hf]
 
 def Function.invertible (f: α → β): Prop :=
   ∃ g, Function.inverses f g ∧ Function.inverses g f

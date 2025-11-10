@@ -126,13 +126,13 @@ theorem IsoPair.isIso_right {C: Cat} {x y: obj} {f: hom x y} {g: hom y x} (h: Is
   exact IsoPair.symm h
 
 def mono {C: Cat.{u, v}} (x y: obj): Type v :=
-  Subtype (fun f: hom x y ↦ IsMono f)
+  Subtype (λ f: hom x y ↦ IsMono f)
 
 def epi {C: Cat.{u, v}} (x y: obj): Type v :=
-  Subtype (fun f: hom x y ↦ IsMono f)
+  Subtype (λ f: hom x y ↦ IsMono f)
 
 def iso {C: Cat.{u, v}} (x y: obj): Type v :=
-  Subtype (fun f: hom x y ↦ IsIso f)
+  Subtype (λ f: hom x y ↦ IsIso f)
 
 -- The automorphism group on an object.
 -- noncomputable def autogroup {C: Cat} (x: C.obj): Group (iso x x) := {
@@ -212,7 +212,7 @@ def Powerset (X: Type u): Type u :=
 -- endofunction f: X → X
 -- Powerset: (Type u) → (Type u)
 -- okay
-example : Functor Sets.{u} Sets.{u} := {
+example: Functor Sets.{u} Sets.{u} := {
   obj := Powerset
   hom := Set.image
   id_preserve := sorry

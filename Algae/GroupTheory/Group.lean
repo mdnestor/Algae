@@ -47,7 +47,8 @@ theorem inverses_inv [Group α] (a: α): inverses a (-a) := by
   exact op_inv_left a
 
 theorem op_cancel_left [Group α] {a b c: α} (h: a + b = a + c): b = c := by
-  calc b
+  calc
+    b
     _ = 0 + b        := by rw [op_unit_left]
     _ = -a + a + b   := by rw [op_inv_left]
     _ = -a + (a + b) := by rw [op_assoc]
@@ -57,20 +58,19 @@ theorem op_cancel_left [Group α] {a b c: α} (h: a + b = a + c): b = c := by
     _ = c            := by rw [op_unit_left]
 
 theorem op_cancel_right [Group α] {a b c: α} (h: a + c = b + c): a = b := by
-  calc a
-  _ = a + 0        := by rw [op_unit_right]
-  _ = a + (c + -c) := by rw [op_inv_right]
-  _ = a + c + -c   := by rw [op_assoc]
-  _ = b + c + -c   := by rw [h]
-  _ = b + (c + -c) := by rw [op_assoc]
-  _ = b + 0        := by rw [op_inv_right]
-  _ = b            := by rw [op_unit_right]
+  calc
+    a
+    _ = a + 0        := by rw [op_unit_right]
+    _ = a + (c + -c) := by rw [op_inv_right]
+    _ = a + c + -c   := by rw [op_assoc]
+    _ = b + c + -c   := by rw [h]
+    _ = b + (c + -c) := by rw [op_assoc]
+    _ = b + 0        := by rw [op_inv_right]
+    _ = b            := by rw [op_unit_right]
 
 theorem op_unit_inverses [Group α] {a b: α} (h: a + b = 0): -a = b := by
-  -- apply op_cancel_right (c := b)
-  -- rw [op_inv_left]
-  -- exact h
-  sorry
+  have: -a + a + b = -a := by rw [op_assoc, h, op_unit_right]
+  rw [←this, op_inv_left, op_unit_left]
 
 theorem inv_unit [Group α]: -(0: α) = 0 := by
   apply op_unit_inverses
@@ -83,7 +83,7 @@ theorem inv_inv [Group α] (a: α): -(-a) = a := by
 theorem opinv_self [Group α] (a: α): a - a = 0 := by
   apply op_inv_right
 
-theorem inv_invop [Group α] (a: α): -(a - b) = b - a := by
+theorem inv_invop [Group α] (a b: α): -(a - b) = b - a := by
   apply op_unit_inverses
   calc
     a - b + (b - a)

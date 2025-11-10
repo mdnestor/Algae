@@ -57,7 +57,7 @@ instance [CommMonoid α]: Zero (quotient α) := {
 }
 
 instance (α: Type u) [Add α]: Add (α × α) := {
-  add := fun (x₁, x₂) (y₁, y₂) => (x₁ + y₁, x₂ + y₂)
+  add := λ (x₁, x₂) (y₁, y₂) ↦ (x₁ + y₁, x₂ + y₂)
 }
 
 theorem quotient_add [CommMonoid α] (a b c d: α × α) (h₁: a ≈ c) (h₂: b ≈ d):

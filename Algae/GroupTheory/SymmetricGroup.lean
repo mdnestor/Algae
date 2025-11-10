@@ -53,12 +53,12 @@ def Group.symm_embed (G: Group α) (g: α): Symm α := {
   map := λ a ↦  g + a
   inv := λ a ↦ -g + a
   id_left := by
-     ext a
-     calc
-       -g + (g + a)
-       _ = -g + g + a := by rw [op_assoc]
-       _ = 0 + a      := by rw [op_inv_left]
-       _ = a          := by rw [op_unit_left]
+    ext a
+    calc
+      -g + (g + a)
+      _ = -g + g + a := by rw [op_assoc]
+      _ = 0 + a      := by rw [op_inv_left]
+      _ = a          := by rw [op_unit_left]
   id_right := by
     ext a
     calc
@@ -82,18 +82,18 @@ def Group.symm_embed_hom (G: Group α): hom G (Group.symm α) := {
   op_preserving := by
     intro g₁ g₂; ext a
     · calc
-      (g₁ + g₂) + a
-      _ = g₁ + (g₂ + a) := by rw [op_assoc]
+        (g₁ + g₂) + a
+        _ = g₁ + (g₂ + a) := by rw [op_assoc]
     · calc
-      -(g₁ + g₂) + a
-      _ = (-g₂ + -g₁) + a := by rw [inv_op]
-      _ = -g₂ + (-g₁ + a) := by rw [op_assoc]
+        -(g₁ + g₂) + a
+        _ = (-g₂ + -g₁) + a := by rw [inv_op]
+        _ = -g₂ + (-g₁ + a) := by rw [op_assoc]
   inv_preserving := by
     intro g; ext a
     · rfl
     · calc
-      -(-g) + a
-      _ = g + a := by rw [inv_inv]
+        -(-g) + a
+        _ = g + a := by rw [inv_inv]
 }
 
 -- Finally we show the embedding is injective.
@@ -104,9 +104,7 @@ def Group.symm_unembed (G: Group α): Symm α → α :=
 def Group.symm_embed_left_invertible (G: Group α): LeftInvertible α (Symm α) := {
   map := G.symm_embed
   inv := G.symm_unembed
-  id_left := by
-    ext a
-    exact op_unit_right a
+  id_left := by ext; apply op_unit_right
 }
 
 -- The image of the embedding is a subgroup.

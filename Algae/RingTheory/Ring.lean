@@ -32,14 +32,14 @@ variable [Ring α]
 
 -- Specializing names and giving additive/multiplicative notation.
 def Ring.zero: α           := Ring.add_struct.unit
-def Ring.add : α → α → α   := Ring.add_struct.op
-def Ring.neg : α → α       := Ring.add_struct.inv
-def Ring.sub : α → α → α   := Ring.add_struct.opinv
+def Ring.add:  α → α → α   := Ring.add_struct.op
+def Ring.neg:  α → α       := Ring.add_struct.inv
+def Ring.sub:  α → α → α   := Ring.add_struct.opinv
 def Ring.nmul: Nat → α → α := Ring.add_struct.nmul
 def Ring.zmul: Int → α → α := Ring.add_struct.zmul
-def Ring.mul : α → α → α   := Ring.mul_struct.op
-def Ring.one : α           := Ring.mul_struct.unit
-def Ring.pow : α → Nat → α := flip Ring.mul_struct.nmul
+def Ring.mul:  α → α → α   := Ring.mul_struct.op
+def Ring.one:  α           := Ring.mul_struct.unit
+def Ring.pow:  α → Nat → α := flip Ring.mul_struct.nmul
 
 -- Notation for 0, +, -, 1, *, ^, •
 instance: Zero α       := ⟨Ring.zero⟩
@@ -91,14 +91,19 @@ theorem distrib_left (a b c: α): a * (b + c) = (a * b) + (a * c) := by
 theorem distrib_right (a b c: α): (a + b) * c = (a * c) + (b * c) := by
   apply Ring.distrib.right
 
-theorem mul_zero_left (a: α): 0 * a = 0 := by
-  apply op_cancel_left
-  calc
-    0 * a + 0 * a
-    _ = (0 + 0) * a := by rw [distrib_right]
-    _ = 0 * a       := by rw [add_zero_left]
-    _ = 0 * a + 0   := by rw [add_zero_right]
+theorem sub_self (a: α): a - a = 0 := by
+  exact opinv_self a
 
+theorem neg_sub (a b: α): -(a - b) = b - a := by
+  rw [inv_invop]
+
+theorem neg_sub' (a b: α): -(a - b) = -a + b := by
+  rw [neg_sub, add_comm]; rfl
+
+theorem neg_zero: -(0: α) = 0 := by
+  apply inv_unit
+
+-- nmul and npow
 theorem nmul_zero (a: α): 0 • a = 0 := by
   rfl
 
@@ -114,30 +119,33 @@ theorem npow_zero (a: α): a^0 = 1 := by
 theorem npow_one (a: α): a^1 = a := by
   apply nmul_one
 
-theorem mul_zero_right (a: α): a * 0 = 0 := by
-  sorry
-
-theorem sub_self (a: α): a - a = 0 := by
-  exact opinv_self a
-
-theorem neg_sub (a b: α): -(a - b) = b - a := by
-  rw [inv_invop]
-
-theorem neg_sub' (a b: α): -(a - b) = -a + b := by
-  rw [neg_sub, add_comm]; rfl
-
-theorem neg_zero: -(0: α) = 0 := by
-  apply inv_unit
-
+-- Basic theorems
 theorem sub_zero_iff {a b: α}: a - b = 0 ↔ a = b := by
-  sorry
+  constructor
+  · intro h
+    apply op_cancel_right
+    calc
+      a - b
+      _ = 0 := by rw [h]
+      _ = b + -b := by rw [op_inv_right]
+  · intro h
+    rw [h, sub_self]
 
-theorem distrib_sub_left (a b c: α): a * (b - c) = a * b - a * c := by
-  sorry
+theorem mul_zero_left (a: α): 0 * a = 0 := by
+  apply op_cancel_left
+  calc
+    0 * a + 0 * a
+    _ = (0 + 0) * a := by rw [distrib_right]
+    _ = 0 * a       := by rw [add_zero_left]
+    _ = 0 * a + 0   := by rw [add_zero_right]
 
-theorem mul_neg (a b: α): a * (-b) = -(a * b) := by
-  apply Eq.symm; apply op_unit_inverses
-  rw [←distrib_left, add_neg_right, mul_zero_right]
+theorem mul_zero_right (a: α): a * 0 = 0 := by
+  apply op_cancel_right
+  calc
+    a * 0 + a * 0
+    _ = a * (0 + 0) := by rw [distrib_left]
+    _ = a * 0       := by rw [add_zero_left]
+    _ = 0 + a * 0   := by rw [add_zero_left]
 
 theorem mul_neg_one (a: α): (-1) * a = -a := by
   apply Eq.symm
@@ -148,6 +156,28 @@ theorem mul_neg_one (a: α): (-1) * a = -a := by
     _ = (1 + -1) * a := by rw [distrib_right]
     _ = 0 * a := by rw [add_neg_right]
     _ = 0 := by rw [mul_zero_left]
+
+theorem mul_neg_left (a b: α): (-a) * b = -(a * b) := by
+  apply Eq.symm
+  apply op_unit_inverses
+  rw [←distrib_right, add_neg_right, mul_zero_left]
+
+theorem mul_neg_right (a b: α): a * (-b) = -(a * b) := by
+  apply Eq.symm
+  apply op_unit_inverses
+  rw [←distrib_left, add_neg_right, mul_zero_right]
+
+theorem distrib_sub_left (a b c: α): a * (b - c) = a * b - a * c := by
+  calc
+    a * (b + -c)
+    _ = a * b + a * -c := by rw [distrib_left]
+    _ = a * b + -(a * c)  := by rw [mul_neg_right]
+
+theorem distrib_sub_right (a b c: α): (a - b) * c = a * c - b * c := by
+  calc
+    (a + -b) * c
+    _ = a * c + -b * c   := by rw [distrib_right]
+    _ = a * c + -(b * c) := by rw [mul_neg_left]
 
 -- If 0 = 1 the ring is trivial (singleton).
 theorem zero_eq_one_trivial (h: (0: α) = 1): ∀ a b: α, a = b := by

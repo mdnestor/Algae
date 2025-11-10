@@ -125,7 +125,7 @@ instance Monoid.endo (α: Type u): Monoid (α → α) := {
 }
 
 -- Lists form a monoid, the "free" monoid.
-def Monoid.free (α: Type u) : Monoid (List α) := {
+def Monoid.free (α: Type u): Monoid (List α) := {
   op := List.append
   unit := List.nil
   identity := by constructor <;> simp [LeftIdentity, RightIdentity]

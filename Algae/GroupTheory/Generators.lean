@@ -34,7 +34,6 @@ theorem zmul_generate_subgroup [G: Group α] (a: α): G.sub (zmul_generate a) :=
     intro x ⟨n, hn⟩
     exists -n
     sorry
-    -- simp [←hn, ←neg_eq, ←zmul_neg', zmul_neg]
 }
 
 def Monoid.cyclic (M: Monoid α): Prop :=

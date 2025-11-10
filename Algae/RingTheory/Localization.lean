@@ -44,7 +44,7 @@ theorem r_equiv (h: MulClosed S): Equivalence (r S) := {
     calc
       t * (s₂ * r₁ - s₁ * r₂)
       _ = t * (-(s₁ * r₂ - s₂ * r₁)) := by rw [neg_sub]
-      _ = - (t * (s₁ * r₂ - s₂ * r₁)) := by rw [mul_neg]
+      _ = - (t * (s₁ * r₂ - s₂ * r₁)) := by rw [mul_neg_right]
       _ = - 0 := by rw [ht₂]
       _ = 0 := by rw [neg_zero]
   trans := by
@@ -55,8 +55,8 @@ theorem r_equiv (h: MulClosed S): Equivalence (r S) := {
     exact ht₁₁
     exact ht₂₁
     exact s₂.property
-    -- ht₁₂ : t₁ * (s₁ * r₂ - s₂ * r₁) = 0
-    -- ht₂₂ : t₂ * (s₂ * r₃ - s₃ * r₂) = 0
+    -- ht₁₂: t₁ * (s₁ * r₂ - s₂ * r₁) = 0
+    -- ht₂₂: t₂ * (s₂ * r₃ - s₃ * r₂) = 0
     rw [distrib_sub_left]
     apply sub_zero_iff.mpr
     have: t₁ * s₁ * r₂ = t₁ * s₂ * r₁ := by
