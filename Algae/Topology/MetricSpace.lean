@@ -1,16 +1,18 @@
-
+import Algae.SetTheory.Relation
 import Algae.GroupTheory.Monoid
 
 variable {X: Type u} {D: Type v}
 
 open Monoid
 
+
+
 /-
 
 A (generalized) metric space consists of
 
 - a set X
-- a set D equipped with ordering ≤, bottom ⊥, addition +.
+- a set D with "distance space" structure: ordering ≤, bottom ⊥, addition +.
 - a function d: X × X → D
 - d(x, y) = ⊥ ↔ x = y
 - d(x, y) = d(y, x)
@@ -18,40 +20,39 @@ A (generalized) metric space consists of
 
 -/
 
--- An "order bottom" structure. TODO move elsewhere
-
-instance [LE D]: LT D := {
-  lt := λ x y ↦ x ≤ y ∧ ¬ y ≤ x
-}
-
-class OrderBottom (X: Type u) where
-  le: X → X → Prop
-  bottom: X
-  bottom_le: ∀ x, le bottom x
-
-instance [OrderBottom D]: LE D := {
-  le := OrderBottom.le
-}
-
-notation "⊥" => OrderBottom.bottom
-
--- A "distance space" structure
 
 class DistanceSpace (D: Type v) where
   le: D → D → Prop
   bottom: D
-  add: D → D → D
   bottom_le: ∀ x, le bottom x
+  add: D → D → D
+  add_assoc: Associative add
+  add_bottom: Identity add bottom
 
-instance [DistanceSpace D]: Magma D := {
-  op := DistanceSpace.add
-}
-
-instance [DistanceSpace D]: OrderBottom D := {
+instance [DistanceSpace D]: Bottom D := {
   le := DistanceSpace.le
   bottom := DistanceSpace.bottom
   bottom_le := DistanceSpace.bottom_le
 }
+
+instance [DistanceSpace D]: Monoid D := {
+  op := DistanceSpace.add
+  unit := DistanceSpace.bottom
+  identity := DistanceSpace.add_bottom
+  assoc := DistanceSpace.add_assoc
+}
+
+-- In a distance space, the bottom element is the zero in the monoid by definition.
+theorem DistanceSpace.bottom_eq_zero [DistanceSpace D]: (⊥: D) = 0 := by
+  rfl
+
+-- Real numbers placeholder in case special cases needed
+-- this should eventually move somewhere else
+-- (until we actually construct it)
+axiom ℝ: Type
+
+instance: DistanceSpace ℝ := sorry
+
 
 -- Metric space
 
@@ -114,6 +115,8 @@ theorem converges_iff_tails_converge (d: Metric X D) (s: Nat → X) (x: X): conv
     exact Nat.le_add_of_sub_le hm
   · intro h
     exact h 0
+
+-- Limits are unique (this holds for D = ℝ, not sure where else)
 
 theorem limit_unique {d: Metric X D} {s: Nat → X} {x₁ x₂: X} (h₁: converges_to d s x₁) (h₂: converges_to d s x₂): x₁ = x₂ := by
   sorry
