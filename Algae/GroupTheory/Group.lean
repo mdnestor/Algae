@@ -27,6 +27,12 @@ scoped instance [Pointed α]: Zero α := ⟨unit⟩
 scoped instance [Group α]: Neg α := ⟨inv⟩
 def opinv [Group α] (a b: α): α := a + -b
 scoped instance [Group α]: Sub α := ⟨opinv⟩
+scoped instance [Group α]: SMul Nat α := ⟨Monoid.ngen⟩
+def zgen [Group α] (k: Int) (a: α): α :=
+  match k with
+  | Int.ofNat n => n • a
+  | Int.negSucc n => n.succ • -a
+instance [Group α]: SMul Int α := ⟨zgen⟩
 end Group
 
 open Group
@@ -97,46 +103,38 @@ theorem inv_invop [Group α] (a b: α): -(a - b) = b - a := by
 -- In a group we can define integer multiplication via
 -- 0 * a = 0, 1 * a = a, 2 * a = a + a, ... and -1 * a = 1 * -a, -2 * a = 2 * (-a), ...
 
-theorem nmul_neg_left [Group α] (a: α) (n: Nat): n • (-a) + n • a = 0 := by
-  apply nmul_inverses n
+theorem ngen_neg_left [Group α] (a: α) (n: Nat): n • (-a) + n • a = 0 := by
+  apply ngen_inverses n
   exact op_inv_left a
 
-theorem nmul_neg_right [Group α] (a: α) (n: Nat): n • a + n • -a = 0 := by
-  apply nmul_inverses n
+theorem ngen_neg_right [Group α] (a: α) (n: Nat): n • a + n • -a = 0 := by
+  apply ngen_inverses n
   exact op_inv_right a
 
-def Group.zmul [Group α] (k: Int) (a: α): α :=
-  match k with
-  | Int.ofNat n => n • a
-  | Int.negSucc n => n.succ • -a
-
-instance [Group α]: SMul Int α := ⟨Group.zmul⟩
-
-
-theorem zmul_zero [Group α] (a: α): (0: Int) • a = (0: α) := by
+theorem zgen_zero [Group α] (a: α): (0: Int) • a = (0: α) := by
   rfl
 
-theorem nmul_inv [Group α] (a: α) (n: Nat): (n • a) + (n • -a) = 0 := by
+theorem ngen_inv [Group α] (a: α) (n: Nat): (n • a) + (n • -a) = 0 := by
   induction n with
-  | zero => simp [nmul_zero, op_unit_left]
+  | zero => simp [ngen_zero, op_unit_left]
   | succ p hp =>
-    rw [Nat.add_comm, ←nmul_add, nmul_one]
-    rw [Nat.add_comm, ←nmul_add, nmul_one]
+    rw [Nat.add_comm, ←ngen_add, ngen_one]
+    rw [Nat.add_comm, ←ngen_add, ngen_one]
     rw [op_assoc, ←op_assoc (p • a)]
     rw [hp, op_unit_left, op_inv_right]
 
-theorem zmul_neg' [Group α] (a: α) (n: Int): -(n • a) = n • -a := by
+theorem zgen_neg' [Group α] (a: α) (n: Int): -(n • a) = n • -a := by
   apply op_unit_inverses
-  induction n <;> apply nmul_inv
+  induction n <;> apply ngen_inv
 
-theorem zmul_add [Group α] (a: α) (m n: Int): m • a + n • a = (m + n) • a := by
+theorem zgen_add [Group α] (a: α) (m n: Int): m • a + n • a = (m + n) • a := by
   induction m with
   | ofNat p => induction p with
-    | zero => simp [zmul_zero, op_unit_left]
+    | zero => simp [zgen_zero, op_unit_left]
     | succ p hp => sorry
   | negSucc p => sorry
 
-theorem zmul_neg [Group α] (a: α) (n: Int): n • (-a) = -n • a := by
+theorem zgen_neg [Group α] (a: α) (n: Int): n • (-a) = -n • a := by
   induction n with
   | ofNat p => calc
     Int.ofNat p • -a
@@ -152,7 +150,7 @@ theorem square_self_zero [Group α] {a: α} (h: 2 • a = a): a = 0 := by
     _ = 0 + a        := by rw [op_unit_left]
     _ = (-a + a) + a := by rw [op_inv_left]
     _ = -a + (a + a) := by rw [op_assoc]
-    _ = -a + (2 • a) := by rw [nmul_two]
+    _ = -a + (2 • a) := by rw [ngen_two]
     _ = -a + a       := by rw [h]
     _ = 0            := by rw [op_inv_left]
 

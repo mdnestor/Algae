@@ -1,7 +1,5 @@
 import Algae.RingTheory.Ring
 
-open Group Ring
-
 variable {α: Type u}
 
 /-
@@ -9,6 +7,8 @@ variable {α: Type u}
 Ringonacci B)
 
 -/
+
+section open Group
 
 def Magma.fibonacci [Magma α] (f₀ f₁: α): Nat → α :=
   λ n ↦ match n with
@@ -18,9 +18,6 @@ def Magma.fibonacci [Magma α] (f₀ f₁: α): Nat → α :=
 
 def Monoid.fibonacci [Monoid α] (f₁: α): Nat → α :=
   Magma.fibonacci 0 f₁
-
-def Ring.fibonacci [Ring α]: Nat → α :=
-  @Monoid.fibonacci α Ring.add_struct.toMonoid 1
 
 def PartialSum [Magma α] (a: Nat → α) (n: Nat): α :=
   match n with
@@ -52,6 +49,12 @@ theorem Magma.fibonacci_partial_sum [CommMonoid α] (f₀ f₁: α) (n: Nat):
       _ =         F (p + 2) + F (p + 3)      := by rw [op_comm]
       _ =         F (p + 4)                  := by rfl
 
+end
+
+open Ring
+
+def Ring.fibonacci [Ring α]: Nat → α :=
+  @Monoid.fibonacci α Semiring.toAddMonoid.toMonoid 1
 
 def Fibonacci [Ring α]: Nat → α :=
   λ n ↦ match n with

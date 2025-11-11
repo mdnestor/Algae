@@ -25,6 +25,14 @@ class Monoid (α: Type u) extends Pointed α, Magma α where
 namespace Monoid
 scoped instance [Monoid α]: Add α := ⟨op⟩
 scoped instance [Monoid α]: Zero α := ⟨unit⟩
+
+def ngen [Monoid α] (n: Nat) (a: α): α :=
+  match n with
+  | Nat.zero => 0
+  | Nat.succ p => (ngen p a) + a
+
+instance [Monoid α]: SMul Nat α := ⟨ngen⟩
+
 end Monoid
 
 open Monoid
@@ -55,45 +63,38 @@ In a monoid we can define multiplication by natural numbers via
 etc.
 -/
 
-def Monoid.nmul [Monoid α] (n: Nat) (a: α): α :=
-  match n with
-  | Nat.zero => 0
-  | Nat.succ p => (nmul p a) + a
 
-instance [Monoid α]: SMul Nat α := ⟨Monoid.nmul⟩
-
-
-theorem nmul_zero' [Monoid α] (a: α): 0 • a = 0 := by
+theorem ngen_zero' [Monoid α] (a: α): 0 • a = 0 := by
   rfl
 
-theorem nmul_zero [Monoid α] (a: α): 0 • a = (0: α) := by
+theorem ngen_zero [Monoid α] (a: α): 0 • a = (0: α) := by
   rfl
 
-theorem nmul_succ [Monoid α] (a: α) (n: Nat): (n + 1) • a = (n • a) + a := by
+theorem ngen_succ [Monoid α] (a: α) (n: Nat): (n + 1) • a = (n • a) + a := by
   rfl
 
-theorem nmul_one [Monoid α] (a: α): 1 • a = a := by
-  rw [nmul_succ, nmul_zero, op_unit_left]
+theorem ngen_one [Monoid α] (a: α): 1 • a = a := by
+  rw [ngen_succ, ngen_zero, op_unit_left]
 
-theorem nmul_two [Monoid α] (a: α): 2 • a = a + a := by
-  rw [nmul_succ, nmul_one]
+theorem ngen_two [Monoid α] (a: α): 2 • a = a + a := by
+  rw [ngen_succ, ngen_one]
 
-theorem nmul_add [Monoid α] (a: α) (m n: Nat): m • a + n • a = (m + n) • a := by
+theorem ngen_add [Monoid α] (a: α) (m n: Nat): m • a + n • a = (m + n) • a := by
   induction n with
-  | zero => rw [nmul_zero, op_unit_right, Nat.add_zero]
-  | succ _ hp => rw [nmul_succ, ←op_assoc, hp, ←Nat.add_assoc, nmul_succ]
+  | zero => rw [ngen_zero, op_unit_right, Nat.add_zero]
+  | succ _ hp => rw [ngen_succ, ←op_assoc, hp, ←Nat.add_assoc, ngen_succ]
 
-theorem nmul_succ' [Monoid α] (a: α) (n: Nat): (n + 1) • a = a + (n • a) := by
+theorem ngen_succ' [Monoid α] (a: α) (n: Nat): (n + 1) • a = a + (n • a) := by
   calc
     (n + 1) • a
     _ = (1 + n) • a := by rw [Nat.add_comm]
-    _ = 1 • a + n • a := by rw [nmul_add]
-    _ = a + n • a := by rw [nmul_one]
+    _ = 1 • a + n • a := by rw [ngen_add]
+    _ = a + n • a := by rw [ngen_one]
 
-theorem nmul_inverses [Monoid α] {a b: α} (n: Nat) (h: a + b = 0): n • a + n • b = 0 := by
+theorem ngen_inverses [Monoid α] {a b: α} (n: Nat) (h: a + b = 0): n • a + n • b = 0 := by
   induction n with
-  | zero => simp [nmul_zero, op_unit_left]
-  | succ p hp => rw [nmul_succ', nmul_succ, op_assoc, ←op_assoc (p • a), hp, op_unit_left, h]
+  | zero => simp [ngen_zero, op_unit_left]
+  | succ p hp => rw [ngen_succ', ngen_succ, op_assoc, ←op_assoc (p • a), hp, op_unit_left, h]
 
 
 theorem inverses_unique [Monoid M] {a b b': M}

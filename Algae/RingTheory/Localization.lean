@@ -19,7 +19,11 @@ Steps:
 
 -/
 
--- Step 1: define the equivalence relation.
+def MulClosed (S: Set R): Prop :=
+  Semiring.toMulMonoid.sub S
+
+
+-- Step 1: define the equivalence relation
 
 def r (S: Set R): Endorelation (R × S) :=
   λ (r₁, s₁) (r₂, s₂) ↦ ∃ t ∈ S, t * (s₁ * r₂ - s₂ * r₁) = 0
@@ -205,23 +209,19 @@ instance: Mul (quotient R S) := {
 
 -- Step 3: show R/S is a ring.
 
-def Localization (R: Type u) [CommRing R] (S: Set R) (h: mul_struct.sub S): CommRing (quotient R S) := {
-  add_struct := {
-    unit := 0
-    op := Add.add
-    identity := sorry
-    assoc := sorry
-    inv := Neg.neg
-    inverse :=  sorry
-    comm := sorry
-  }
-  mul_struct := {
-    unit := 1
-    op := Mul.mul
-    identity :=  sorry
-    assoc := sorry
-  }
+example (h: MulClosed S): CommRing (quotient h) := {
+  add := Add.add
+  zero := 0
+  add_assoc := sorry
+  add_zero := sorry
+  add_comm := sorry
+  mul := Mul.mul
+  one := 1
+  mul_assoc := sorry
+  mul_one := sorry
   distrib := sorry
+  neg := sorry
+  add_neg := sorry
   mul_comm := sorry
 }
 
