@@ -3,9 +3,10 @@ import Algae.SetTheory.Relation
 
 open Ring
 
-variable {R: Type u} [CommRing R] {S: Set R} [h: mul_struct.sub S]
+variable {R: Type u} [ℛ: CommRing R] {S: Set R}
 
 namespace Localization
+
 /-
 
 Localization of a ring requires:
@@ -20,15 +21,14 @@ Steps:
 -/
 
 def MulClosed (S: Set R): Prop :=
-  Semiring.toMulMonoid.sub S
-
+  ℛ.toMulMonoid.sub S
 
 -- Step 1: define the equivalence relation
 
 def r (S: Set R): Endorelation (R × S) :=
   λ (r₁, s₁) (r₂, s₂) ↦ ∃ t ∈ S, t * (s₁ * r₂ - s₂ * r₁) = 0
 
-theorem r_equiv: Equivalence (r S) := {
+theorem r_equiv [h: ℛ.toMulMonoid.sub S]: Equivalence (r S) := {
   refl := by
     intro (r, s)
     exists 1
@@ -84,38 +84,38 @@ theorem r_equiv: Equivalence (r S) := {
 
 instance (S: Set R): HasEquiv (R × S) := ⟨r S⟩
 
-def setoid: Setoid (R × S) := {
+def setoid [h: ℛ.toMulMonoid.sub S]: Setoid (R × S) := {
   r := r S
   iseqv := r_equiv
 }
 
-def quotient (R: Type u) [CommRing R] (S: Set R) [h: mul_struct.sub S]: Type u :=
+def quotient (h: ℛ.toMulMonoid.sub S): Type u :=
   Quotient (@setoid R _ S h)
 
 -- Define 0, 1, +, -, and * on the product.
 
-instance: Zero (R × S) := {
+instance [h: ℛ.toMulMonoid.sub S]: Zero (R × S) := {
   zero := (0, ⟨1, h.unit_mem⟩)
 }
 
-instance: Add (R × S) := {
+instance [h: ℛ.toMulMonoid.sub S]: Add (R × S) := {
   add := by
     intro (r₁, ⟨s₁, h₁⟩) (r₂, ⟨s₂, h₂⟩)
     have h: (s₁ * s₂) ∈ S := by apply h.op_closed s₁ s₂ h₁ h₂
     exact (r₁ * s₂ + r₂ * s₁, ⟨s₁ * s₂, h⟩)
 }
 
-instance: Neg (R × S) := {
+instance [h: ℛ.toMulMonoid.sub S]: Neg (R × S) := {
   neg := by
     intro (r, s)
     exact (-r, s)
 }
 
-instance: One (R × S) := {
+instance [h: ℛ.toMulMonoid.sub S]: One (R × S) := {
   one := (1, ⟨1, h.unit_mem⟩)
 }
 
-instance: Mul (R × S) := {
+instance [h: ℛ.toMulMonoid.sub S]: Mul (R × S) := {
   mul := by
     intro (r₁, ⟨s₁, h₁⟩) (r₂, ⟨s₂, h₂⟩)
     have h: (s₁ * s₂) ∈ S := by apply h.op_closed s₁ s₂ h₁ h₂
@@ -124,7 +124,7 @@ instance: Mul (R × S) := {
 
 -- Step 2: show these operations are well defined in the quotient.
 
-theorem quotient_add: ∀ a b c d: (R × S), a ≈ c → b ≈ d → Quotient.mk setoid (a + b) = Quotient.mk setoid (c + d) := by
+theorem quotient_add [h: ℛ.toMulMonoid.sub S]: ∀ a b c d: (R × S), a ≈ c → b ≈ d → Quotient.mk setoid (a + b) = Quotient.mk setoid (c + d) := by
   intro ⟨a₁, a₂⟩ ⟨b₁, b₂⟩ ⟨c₁, c₂⟩ ⟨d₁, d₂⟩ ⟨t₁, ht₁₁, ht₁₂⟩ ⟨t₂, ht₂₁, ht₂₂⟩
   apply Quotient.sound
   exists t₁ * t₂
@@ -147,7 +147,7 @@ theorem quotient_add: ∀ a b c d: (R × S), a ≈ c → b ≈ d → Quotient.mk
       _ = t₁ * t₂ * c₂ * (d₂ * (a₁ * b₂)) + t₁ * t₂ * (c₂ * (d₂ * b₁ * a₂))         := by simp [mul_comm]
       _ = (t₁ * t₂ * (c₂ * d₂ * (a₁ * b₂)) + t₁ * t₂ * (c₂ * d₂ * (b₁ * a₂)))       := by simp [mul_assoc]
 
-theorem quotient_neg: ∀ a b: (R × S), a ≈ b → Quotient.mk setoid (-a) = Quotient.mk setoid (-b) := by
+theorem quotient_neg [h: ℛ.toMulMonoid.sub S]: ∀ a b: (R × S), a ≈ b → Quotient.mk setoid (-a) = Quotient.mk setoid (-b) := by
   intro _ _ ⟨t, ht₁, ht₂⟩
   apply Quotient.sound
   exists t
@@ -158,7 +158,7 @@ theorem quotient_neg: ∀ a b: (R × S), a ≈ b → Quotient.mk setoid (-a) = Q
     repeat rw [mul_neg_right]
     rw [ht₂]
 
-theorem quotient_mul: ∀ a b c d: (R × S), a ≈ c → b ≈ d → Quotient.mk setoid (a * b) = Quotient.mk setoid (c * d) := by
+theorem quotient_mul [h: ℛ.toMulMonoid.sub S]: ∀ a b c d: (R × S), a ≈ c → b ≈ d → Quotient.mk setoid (a * b) = Quotient.mk setoid (c * d) := by
   intro ⟨a₁, a₂⟩ ⟨b₁, b₂⟩ ⟨c₁, c₂⟩ ⟨d₁, d₂⟩ ⟨t₁, ht₁₁, ht₁₂⟩ ⟨t₂, ht₂₁, ht₂₂⟩
   apply Quotient.sound
   exists t₁ * t₂
@@ -187,29 +187,29 @@ theorem quotient_mul: ∀ a b c d: (R × S), a ≈ c → b ≈ d → Quotient.mk
 -- Now we can form instances of each on the quotient.
 -- for the constants just use the quotient map.
 
-instance: Zero (quotient R S) := {
+instance [h: ℛ.toMulMonoid.sub S]: Zero (quotient h) := {
   zero := Quotient.mk _ 0
 }
 
-instance: One (quotient R S) := {
+instance [h: ℛ.toMulMonoid.sub S]: One (quotient h) := {
   one := Quotient.mk _ 1
 }
 
-instance: Neg (quotient R S) := {
+instance [h: ℛ.toMulMonoid.sub S]: Neg (quotient h) := {
   neg := λ x ↦ Quotient.liftOn x _ quotient_neg
 }
 
-instance: Add (quotient R S) := {
+instance [h: ℛ.toMulMonoid.sub S]: Add (quotient h) := {
   add := λ x y ↦ Quotient.liftOn₂ x y _ quotient_add
 }
 
-instance: Mul (quotient R S) := {
+instance [h: ℛ.toMulMonoid.sub S]: Mul (quotient h) := {
   mul := λ x y ↦ Quotient.liftOn₂ x y _ quotient_mul
 }
 
 -- Step 3: show R/S is a ring.
 
-example (h: MulClosed S): CommRing (quotient h) := {
+example [h: ℛ.toMulMonoid.sub S]: CommRing (quotient h) := {
   add := Add.add
   zero := 0
   add_assoc := sorry
