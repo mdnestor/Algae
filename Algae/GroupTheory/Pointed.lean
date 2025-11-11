@@ -28,13 +28,17 @@ class Pointed.hom (P₁: Pointed α) (P₂: Pointed β) where
   map: α → β
   unit_preserving: map 0 = 0
 
+instance Pointed.hom.coeFun [P₁: Pointed α] [P₂: Pointed β]: CoeFun (Pointed.hom P₁ P₂) (λ _ ↦ α → β) := {
+  coe f := f.map
+}
+
 def Pointed.hom.id (P: Pointed α): hom P P := {
   map := Function.id
   unit_preserving := rfl
 }
 
 def Pointed.hom.comp {P₁: Pointed α} {P₂: Pointed β} {P₃: Pointed γ} (f: hom P₁ P₂) (g: hom P₂ P₃): hom P₁ P₃ := {
-  map := g.map ∘ f.map
+  map := g ∘ f
   unit_preserving := by simp [g.unit_preserving, f.unit_preserving]
 }
 
@@ -47,7 +51,7 @@ theorem Pointed.sub.full (P: Pointed α): P.sub (Set.full α) := {
   unit_mem := trivial
 }
 
-theorem Pointed.hom.image_sub {P₁: Pointed α} {P₂: Pointed β} (f: hom P₁ P₂): P₂.sub (Set.range f.map) := {
+theorem Pointed.hom.image_sub {P₁: Pointed α} {P₂: Pointed β} (f: hom P₁ P₂): P₂.sub (Set.range f) := {
   unit_mem := by
     rw [←f.unit_preserving]
     apply Set.range_mem
@@ -60,7 +64,7 @@ instance Pointed.product (P₁: Pointed α) (P₂: Pointed β): Pointed (α × �
 }
 
 def Pointed.hom.kernel {P₁: Pointed α} {P₂: Pointed β} (f: hom P₁ P₂): Set α :=
-  λ a => f.map a = 0
+  λ a => f a = 0
 
 theorem Pointed.kernel.sub {P₁: Pointed α} {P₂: Pointed β} (f: hom P₁ P₂): P₁.sub f.kernel := {
   unit_mem := f.unit_preserving
