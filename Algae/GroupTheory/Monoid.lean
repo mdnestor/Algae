@@ -23,8 +23,8 @@ class Monoid (α: Type u) extends Pointed α, Magma α where
 
 -- Introduce `+` and `0` notation to the monoid namespace.
 namespace Monoid
-scoped instance [Monoid α]: Add α := ⟨op⟩
-scoped instance [Monoid α]: Zero α := ⟨unit⟩
+scoped instance [Magma α]: Add α := ⟨op⟩
+scoped instance [Pointed α]: Zero α := ⟨unit⟩
 
 def ngen [Monoid α] (n: Nat) (a: α): α :=
   match n with
