@@ -174,13 +174,15 @@ class Monoid.hom (M₁: Monoid α) (M₂: Monoid β) extends
   toPointedHom: Pointed.hom M₁.toPointed M₂.toPointed,
   toMagmaHom: Magma.hom M₁.toMagma M₂.toMagma
 
-
+instance Monoid.hom.coeFun [M₁: Monoid α] [M₂: Monoid β]: CoeFun (Monoid.hom M₁ M₂) (λ _ ↦ α → β) := {
+  coe f := f.map
+}
 
 class Monoid.sub (M: Monoid α) (S: Set α) extends
   toPointedSub: M.toPointed.sub S,
   toMagmaSub: M.toMagma.sub S
 
-theorem Monoid.hom.image_sub {M₁: Monoid α} {M₂: Monoid β} (f: hom M₁ M₂): M₂.sub (Set.range f.map) := {
+theorem Monoid.hom.image_sub {M₁: Monoid α} {M₂: Monoid β} (f: hom M₁ M₂): M₂.sub (Set.range f) := {
   unit_mem := (Pointed.hom.image_sub f.toPointedHom).unit_mem
   op_closed := (Magma.hom.image_sub f.toMagmaHom).op_closed
 }
@@ -190,8 +192,8 @@ theorem Monoid.kernel_sub {M₁: Monoid α} {M₂: Monoid β} (f: hom M₁ M₂)
   op_closed := by
     intro x y hx hy
     calc
-      f.map (x + y)
-      _ = (f.map x) + (f.map y) := by rw [f.op_preserving]
+      f (x + y)
+      _ = f x + f y := by rw [f.op_preserving]
       _ = 0 + 0 := by rw [hx, hy]
       _ = 0 := by rw [op_unit_left]
 }

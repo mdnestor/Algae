@@ -33,6 +33,26 @@ def Antisymmetric (R: Endorelation α): Prop :=
 def Total (R: Endorelation α): Prop :=
   ∀ {a b}, R a b ∨ R b a
 
+-- Notation
+
+instance [LE α]: LT α := {
+  lt := λ a b ↦ a ≤ b ∧ ¬ b ≤ a
+}
+
+class Bottom (α: Type u) extends LE α where
+  bottom: α
+  bottom_le: ∀ x, bottom ≤ x
+
+notation "⊥" => Bottom.bottom
+
+class Top (α: Type u) extends LE α where
+  top: α
+  top_ge: ∀ x, x ≤ top
+
+notation "⊤" => Top.top
+
+
+
 def UpperBound (R: Relation α β) (S: Set α) (b: β): Prop :=
   ∀ a, a ∈ S → R a b
 

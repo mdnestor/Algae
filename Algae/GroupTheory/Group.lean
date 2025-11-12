@@ -177,6 +177,10 @@ class Group.hom (G₁: Group α) (G₂: Group β)
   extends toMonoidHom: Monoid.hom G₁.toMonoid G₂.toMonoid where
   inv_preserving: ∀ a, map (-a) = -(map a)
 
+instance Group.hom.coeFun [G₁: Group α] [G₂: Group β]: CoeFun (Group.hom G₁ G₂) (λ _ ↦ α → β) := {
+  coe f := f.map
+}
+
 -- A subgroup is a submonoid which is also closed under inverses.
 
 class Group.sub (G: Group α) (S: Set α) extends G.toMonoid.sub S where
@@ -185,7 +189,7 @@ class Group.sub (G: Group α) (S: Set α) extends G.toMonoid.sub S where
 
 -- The image of a group homomorphism is a subgroup.
 
-theorem Group.hom.image_sub (G₁: Group α) (G₂: Group β) (f: hom G₁ G₂): G₂.sub (Set.range f.map) := {
+theorem Group.hom.image_sub (G₁: Group α) (G₂: Group β) (f: hom G₁ G₂): G₂.sub (Set.range f) := {
   unit_mem := (Monoid.hom.image_sub f.toMonoidHom).unit_mem
   op_closed := (Monoid.hom.image_sub f.toMonoidHom).op_closed
   inv_closed := by
@@ -202,8 +206,8 @@ theorem Group.kernel_sub (G₁: Group α) (G₂: Group β) (f: hom G₁ G₂): G
   inv_closed := by
     intro x hx
     calc
-      f.map (-x)
-      _ = -(f.map x) := by rw [f.inv_preserving]
+      f (-x)
+      _ = -(f x) := by rw [f.inv_preserving]
       _ = -0 := by rw [hx]
       _ = 0 := by rw [inv_unit]
 }
