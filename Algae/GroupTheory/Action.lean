@@ -3,6 +3,7 @@
 Actions, orbits, stabilizers.
 
 TODO:
+- refactor action to reference acting object explicitly?
 - orbit stabilizer theorem
 
 -/

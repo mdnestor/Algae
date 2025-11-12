@@ -24,6 +24,38 @@ def Conjugate.action [Group α]: Action α α := {
     rw [inv_unit, op_unit_left, op_unit_right]
 }
 
+
+/-
+
+TODO: remove this block
+but it shows how we can refactor action to reference monoid explicitly
+instead of type class synthesis...
+
+-/
+class Action' (X: Type u) {α: Type v} (M: Monoid α) where
+  act: α → X → X
+  op: ∀ a b x, act b (act a x) = act (a + b) x
+  id: LeftIdentity act 0
+
+def Conjugate' [Group α] (g: α): α → α :=
+  λ a ↦ g + a + -g
+
+def Conjugate'.action [G: Group α]: Action' α G.toMonoid.opposite := {
+  act := Conjugate'
+  op := by
+    intro a b x
+    simp [Conjugate']
+    apply Eq.symm
+    calc
+      b + a + x + -(b + a)
+      _ = b + a + x + (-a + -b) := by rw [inv_op]
+      _ = b + (a + x + -a) + -b := by simp [op_assoc]
+  id := by
+    intro
+    rw [Conjugate']
+    rw [inv_unit, op_unit_left, op_unit_right]
+}
+
 class Group.normalSubgroup [G: Group α] (S: Set α) extends toSubgroup: G.sub S where
   conj_invariant: Conjugate.action.invariant_set S
 
