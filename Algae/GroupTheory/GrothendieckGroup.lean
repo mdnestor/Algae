@@ -11,6 +11,8 @@ E.g. how the integers are constructed from the naturals.
 
 variable {α: Type u}
 
+namespace GrothendieckGroup
+
 open Group
 
 def relation (α: Type u) [Magma α]: α × α → α × α → Prop :=
