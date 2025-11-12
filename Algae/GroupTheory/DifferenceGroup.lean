@@ -11,7 +11,7 @@ E.g. how the integers are constructed from the naturals.
 
 variable {α: Type u}
 
-namespace GrothendieckGroup
+namespace DifferenceGroup
 
 open Group
 
@@ -97,7 +97,7 @@ instance [CommMonoid α]: Neg (quotient α) := {
 -- The add, zero, and neg instances are automatically inferred
 -- based on the above constructions.
 
-instance GrothendieckGroup [CommMonoid α]: CommGroup (quotient α) := {
+instance DifferenceGroup [CommMonoid α]: CommGroup (quotient α) := {
   unit := Zero.zero
   op := Add.add
   inv := Neg.neg -- TODO not right
