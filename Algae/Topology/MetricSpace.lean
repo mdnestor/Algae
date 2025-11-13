@@ -5,8 +5,6 @@ variable {X: Type u} {D: Type v}
 
 open Monoid
 
-
-
 /-
 
 A (generalized) metric space consists of
@@ -23,11 +21,15 @@ A (generalized) metric space consists of
 
 class DistanceSpace (D: Type v) where
   le: D → D → Prop
+  le_refl: ∀ d, le d d
+  le_trans: ∀ d₁ d₂ d₃, le d₁ d₂ → le d₂ d₃ → le d₁ d₃
+  le_antisymm: ∀ d₁ d₂, le d₁ d₂ → le d₂ d₁ → d₁ = d₂
   bottom: D
   bottom_le: ∀ x, le bottom x
   add: D → D → D
   add_assoc: Associative add
   add_bottom: Identity add bottom
+  le_add: ∀ d₁ d₂ d, le d₁ d₂ ↔ le (add d₁ d) (add d₂ d)
 
 instance [DistanceSpace D]: Bottom D := {
   le := DistanceSpace.le
@@ -41,6 +43,10 @@ instance [DistanceSpace D]: Monoid D := {
   identity := DistanceSpace.add_bottom
   assoc := DistanceSpace.add_assoc
 }
+
+def DistanceComplete (D: Type v) [DistanceSpace D]: Prop :=
+  ∀ d: D, ⊥ < d → ∃ r, ⊥ < r ∧ r + r ≤ d
+
 
 -- In a distance space, the bottom element is the zero in the monoid by definition.
 theorem DistanceSpace.bottom_eq_zero [DistanceSpace D]: (⊥: D) = 0 := by
@@ -136,13 +142,13 @@ theorem converges_iff_tail_converges (d: Metric X D) (a: Sequence X) (x: X): Con
 theorem not_lt_self (x: D): ¬(x < x) := by
   exact Std.Irrefl.irrefl x
 
-theorem le_antisymm {x₁ x₂: D}: x₁ ≤ x₂ → x₂ ≤ x₁ → x₁ = x₂ := by
-  sorry
-
 theorem le_add {x₁ x₂ y₁ y₂: D} (h₁: x₁ < y₁) (h₂: x₂ < y₂): x₁ + x₂ < y₁ + y₂ := by
   sorry
 
 theorem le_lt_trans {x y z: D} (h₁: x ≤ y) (h₂: y < z): x < z := by
+  sorry
+
+theorem lt_le_trans {x y z: D} (h₁: x < y) (h₂: y ≤ z): x < z := by
   sorry
 
 theorem not_lt {x y: D}: ¬x < y ↔ y ≤ x := by
@@ -161,20 +167,21 @@ theorem eq_bot_iff (x₀: D): x₀ = ⊥ ↔ ∀ x, ⊥ < x → x₀ < x := by
     · have hx₀: x₀ ≤ ⊥ := by exact not_lt.mp hx
       have hx: ∀ x: D, ⊥ ≤ x := by exact Bottom.bottom_le
       have hx₀':= hx x₀
-      exact le_antisymm hx₀ hx₀'
+      exact DistanceSpace.le_antisymm _ _ hx₀ hx₀'
 
-theorem limit_unique {d: Metric X D} {a: Sequence X} {x₁ x₂: X} (h₁: ConvergesTo d a x₁) (h₂: ConvergesTo d a x₂): x₁ = x₂ := by
+theorem limit_unique {d: Metric X D} {a: Sequence X} {x₁ x₂: X} (h₀: DistanceComplete D) (h₁: ConvergesTo d a x₁) (h₂: ConvergesTo d a x₂): x₁ = x₂ := by
   apply (d.distance_bot_iff x₁ x₂).mp
   apply (eq_bot_iff (d x₁ x₂)).mpr
   intro r₀ hr₀
   ------- need r = r₀ / 2 -------
+  obtain ⟨r, hr₁, hr₂⟩ := h₀ r₀ hr₀
   have r: D := sorry
-  have hr: ⊥ < r := sorry
-  have hr': r₀ = r + r := sorry
+  have hr₁: ⊥ < r := sorry
+  have hr₂: r₀ = r + r := sorry
   -------------------------------
-  rw [hr']
-  have ⟨n₁, hn₁⟩ := h₁ r hr
-  have ⟨n₂, hn₂⟩ := h₂ r hr
+  rw [hr₂]
+  have ⟨n₁, hn₁⟩ := h₁ r hr₁
+  have ⟨n₂, hn₂⟩ := h₂ r hr₁
   by_cases h: n₁ ≤ n₂
   · have dx₁ := (hn₁ n₂ h)
     have dx₂ := (hn₂ n₂ (Nat.le_refl n₂))
@@ -211,7 +218,67 @@ def is_open_set (d: Metric X D) (S: Set X): Prop :=
   - boundedness
 -/
 
--- Cauchy
+-- Cauchy sequence
 
-def cauchy (d: Metric X D) (a: Sequence X): Prop :=
-  ∀ r, 0 < r → ∃ N, ∀ m n, N ≤ m → N ≤ n → d (a m) (a n) < r
+def Cauchy (d: Metric X D) (a: Sequence X): Prop :=
+  ∀ r, ⊥ < r → ∃ N, ∀ m n, N ≤ m → N ≤ n → d (a m) (a n) < r
+
+theorem cauchy_if_convergent (h₀: DistanceComplete D) {d: Metric X D} {a: Sequence X} (h: Convergent d a): Cauchy d a := by
+  intro r₀ hr₀
+  have ⟨x, hx⟩ := h
+  have ⟨r, hr₁, hr₂⟩ := h₀ r₀ hr₀
+  have ⟨N, hN⟩ := hx r hr₁
+  exists N
+  intro m n hm hn
+  have dm := hN m hm
+  have dn := hN n hn
+  rw [d.distance_symm] at dn
+  have := le_lt_trans (d.distance_triangle (a m) x (a n)) (le_add dm dn)
+  exact lt_le_trans this hr₂
+
+def Complete (d: Metric X D): Prop :=
+  ∀ a, Cauchy d a → Convergent d a
+
+-- Given a metric space (X, d) we can build a complete metric space
+-- via the quotient on the set of Cauchy sequences
+-- by that the relation that their difference converges to zero.
+-- i.e. given two cauchy sequences a(n) b(n)
+-- a ~ b if d(a(n), b(n)) -> 0.
+
+abbrev Endometric (D: Type u) [DistanceSpace D]: Type u :=
+  Metric D D
+
+def CauchyRelation (d₀: Endometric D) (d: Metric X D): Endorelation (Sequence X) :=
+  λ a b ↦ ConvergesTo d₀ (λ n ↦ d (a n) (b n)) ⊥
+
+theorem CauchyRelation.equiv (hd: DistanceComplete D) (d₀: Endometric D) (hd₀: ∀ r, d₀ r ⊥ = r) (d: Metric X D): Equivalence (CauchyRelation d₀ d) := {
+  refl := by
+    intro _ _ hr
+    exists 321
+    intro _ _
+    simp [dist_self_bot]
+    exact hr
+  symm := by
+    intro _ _ h r hr
+    obtain ⟨n, hn⟩ := h r hr
+    exists n
+    intro m hm
+    simp [d.distance_symm]
+    exact hn m hm
+  trans := by
+    intro a b c h₁ h₂
+    intro r hr
+    obtain ⟨r₀, hr₁, hr₂⟩ := hd r hr
+    obtain ⟨n₁, hn₁⟩ := h₁ r₀ hr₁
+    obtain ⟨n₂, hn₂⟩ := h₂ r₀ hr₁
+    exists max n₁ n₂
+    intro m hm
+    simp_all
+    apply le_lt_trans
+    apply d.distance_triangle _ (b m)
+    apply lt_le_trans
+    apply le_add
+    exact hn₁ m (Nat.max_le.mp hm).left
+    exact hn₂ m (Nat.max_le.mp hm).right
+    exact hr₂
+}
