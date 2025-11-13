@@ -2,8 +2,6 @@ import Algae.GroupTheory.Group
 
 variable {α: Type u}
 
-
-
 /-
 
 A ring is a set with

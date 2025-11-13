@@ -1,4 +1,3 @@
-
 variable {α: Type u} {β: Type v}
 
 def Op (α: Type u): Type u :=

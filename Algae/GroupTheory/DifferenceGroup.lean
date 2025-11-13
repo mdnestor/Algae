@@ -1,5 +1,11 @@
 import Algae.GroupTheory.Group
 
+variable {α: Type u}
+
+namespace DifferenceGroup
+open Group
+
+
 /-
 
 Construction of the group of difference of a commutative monoid, aka the Grothendeick group.
@@ -9,11 +15,7 @@ E.g. how the integers are constructed from the naturals.
 
 -/
 
-variable {α: Type u}
 
-namespace DifferenceGroup
-
-open Group
 
 def relation (α: Type u) [Magma α]: α × α → α × α → Prop :=
   λ (a₁, a₂) (b₁, b₂) ↦ ∃ k, a₁ + b₂ + k = b₁ + a₂ + k

@@ -1,3 +1,7 @@
+import Algae.SetTheory.Relation
+import Algae.Constructions.Natural
+import Algae.GroupTheory.DifferenceGroup
+
 /-
 
 Construction of the integers.
@@ -8,10 +12,6 @@ Want to show they are
 - partial order / total order / lattice
 
 -/
-
-import Algae.SetTheory.Relation
-import Algae.Constructions.Natural
-import Algae.GroupTheory.DifferenceGroup
 
 -- We can construct the type of integers via the Grothendieck construction.
 -- This gives us an additive commutative monoid.

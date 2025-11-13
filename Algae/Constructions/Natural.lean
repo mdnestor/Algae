@@ -1,3 +1,5 @@
+import Algae.RingTheory.Ring
+
 /-
 
 Construction of the natural numbers from scratch.
@@ -22,8 +24,6 @@ Notes:
 - Could use an ordered monoid with ⊥ = 0?
 
 -/
-
-import Algae.RingTheory.Ring
 
 inductive Natural where
 | zero: Natural

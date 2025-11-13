@@ -1,10 +1,9 @@
 import Algae.RingTheory.Field
 import Algae.SetTheory.Relation
 
-open Ring
-
 variable {R: Type u} [𝓡: CommRing R] {S: Set R}
 
+open Ring
 namespace Localization
 
 /-

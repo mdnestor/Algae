@@ -1,8 +1,8 @@
 import Algae.RingTheory.Ring
 
-open Ring
-
 variable {F: Type u}
+
+open Ring
 
 def Nonzero (F: Type u) [Zero F]: Set F :=
   λ a => a ≠ 0

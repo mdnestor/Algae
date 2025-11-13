@@ -1,12 +1,12 @@
+import Algae.SetTheory.Operation
+import Algae.SetTheory.Relation
+import Algae.SetTheory.Subset
+
 /-
 
 Define the extended natural numbers with infinity.
 
 -/
-
-import Algae.SetTheory.Operation
-import Algae.SetTheory.Relation
-import Algae.SetTheory.Subset
 
 def ENat: Type :=
   Nat ⊕ Unit

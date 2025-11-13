@@ -1,3 +1,11 @@
+import Algae.GroupTheory.Group
+import Algae.GroupTheory.Action
+import Algae.SetTheory.Function
+
+variable {α: Type u} {β: Type v} {γ: Type w}
+
+open Group
+
 /-
 
 Symmetric group, Cayley's theorem.
@@ -7,14 +15,6 @@ TODO:
 - show G is isomorphic to a subgroup of the permutations.
 
 -/
-
-import Algae.GroupTheory.Group
-import Algae.GroupTheory.Action
-import Algae.SetTheory.Function
-
-open Group
-
-variable {α: Type u} {β: Type v} {γ: Type w}
 
 -- `Symm α` is the type of permutations on α,
 -- consisting of (f, g) pairs with fg = gf = id.

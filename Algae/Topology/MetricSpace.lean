@@ -16,8 +16,9 @@ A (generalized) metric space consists of
 - d(x, y) = d(y, x)
 - Triangle inequality: d(x, z) ≤ d(x, y) + d(x, z)
 
--/
+TODO: Switch sequences from Nat to ℕ.
 
+-/
 
 class DistanceSpace (D: Type v) where
   le: D → D → Prop
@@ -47,19 +48,9 @@ instance [DistanceSpace D]: Monoid D := {
 def DistanceComplete (D: Type v) [DistanceSpace D]: Prop :=
   ∀ d: D, ⊥ < d → ∃ r, ⊥ < r ∧ r + r ≤ d
 
-
 -- In a distance space, the bottom element is the zero in the monoid by definition.
 theorem DistanceSpace.bottom_eq_zero [DistanceSpace D]: (⊥: D) = 0 := by
   rfl
-
--- Real numbers placeholder in case special cases needed
--- this should eventually move somewhere else
--- (until we actually construct it)
-axiom ℝ: Type
-
-instance: DistanceSpace ℝ := sorry
-
-
 
 -- Metric space
 

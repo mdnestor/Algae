@@ -1,3 +1,8 @@
+import Algae.GroupTheory.Group
+import Algae.SetTheory.Relation
+import Algae.SetTheory.Logic
+open Group
+
 /-
 
 Actions, orbits, stabilizers.
@@ -7,13 +12,6 @@ TODO:
 - orbit stabilizer theorem
 
 -/
-
-import Algae.GroupTheory.Group
-import Algae.SetTheory.Relation
-import Algae.SetTheory.Logic
-open Group
-
-
 
 class Action (X: Type u) (α: Type v) [Monoid α] where
   act: α → X → X

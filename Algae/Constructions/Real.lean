@@ -1,3 +1,6 @@
+import Algae.Constructions.Rational
+import Algae.Topology.MetricSpace
+
 /-
 
 Construction of the reals.
@@ -7,9 +10,6 @@ Want to show:
 - poset/complete lattice
 
 -/
-
-import Algae.Constructions.Rational
-import Algae.Topology.MetricSpace
 
 def CauchySequenceRelation: Endorelation (ℕ → ℚ) :=
   sorry
