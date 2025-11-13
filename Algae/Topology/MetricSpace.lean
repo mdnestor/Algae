@@ -54,6 +54,7 @@ axiom ℝ: Type
 instance: DistanceSpace ℝ := sorry
 
 
+
 -- Metric space
 
 class Metric (X: Type u) (D: Type v) [DistanceSpace D] where
@@ -65,8 +66,6 @@ class Metric (X: Type u) (D: Type v) [DistanceSpace D] where
 instance [DistanceSpace D] [Metric X D]: CoeFun (Metric X D) (λ _ ↦ X → X → D) := {
   coe _ := Metric.distance
 }
-
--- From now on assume D has a distance space structure.
 
 variable [DistanceSpace D]
 
@@ -81,31 +80,36 @@ theorem distance_symm [d: Metric X D]: ∀ x y, d x y = d y x := by
 theorem distance_triangle [d: Metric X D]: ∀ x y z, d x z ≤ d x y + d y z := by
   exact Metric.distance_triangle
 
--- First theorem of substabce: distance from any point to itself is the bottom element.
-
 theorem dist_self_bot [d: Metric X D] (x: X): d x x = ⊥ := by
   apply (distance_bot_iff x x).mpr
   rfl
 
-def converges_to (d: Metric X D) (s: Nat → X) (x: X): Prop :=
-  ∀ r, ⊥ < r → ∃ n, ∀ m, n ≤ m → d (s m) x < r
 
-def convergent (d: Metric X D) (s: Nat → X): Prop :=
-  ∃ x, converges_to d s x
+
+-- Sequences
+
+def Sequence (X: Type u): Type u :=
+  Nat → X
+
+def ConvergesTo (d: Metric X D) (a: Sequence X) (x: X): Prop :=
+  ∀ r, ⊥ < r → ∃ n, ∀ m, n ≤ m → d (a m) x < r
+
+def Convergent (d: Metric X D) (a: Sequence X): Prop :=
+  ∃ x, ConvergesTo d a x
 
 -- optional: define the limit of a convergent sequence via choose
 
-theorem constant_sequence_converges (d: Metric X D) (x: X): converges_to d (λ _ ↦ x) x := by
-  intro _ hr
-  exists 123
-  intro _ _
+theorem constant_sequence_converges (d: Metric X D) (x: X): ConvergesTo d (λ _ ↦ x) x := by
+  intro r hr
+  exists 0
+  intros
   rw [dist_self_bot]
   exact hr
 
-def tail (s: Nat → X) (t: Nat): Nat → X :=
+def tail (s: Sequence X) (t: Nat): Sequence X :=
   λ n ↦ s (n + t)
 
-theorem converges_iff_tails_converge (d: Metric X D) (s: Nat → X) (x: X): converges_to d s x ↔ ∀ t, converges_to d (tail s t) x := by
+theorem converges_iff_tails_converge (d: Metric X D) (a: Sequence X) (x: X): ConvergesTo d a x ↔ ∀ t, ConvergesTo d (tail a t) x := by
   constructor
   · intro h t r hr
     obtain ⟨n, hn⟩ := h r hr
@@ -116,17 +120,98 @@ theorem converges_iff_tails_converge (d: Metric X D) (s: Nat → X) (x: X): conv
   · intro h
     exact h 0
 
--- Limits are unique (this holds for D = ℝ, not sure where else)
+theorem converges_iff_tail_converges (d: Metric X D) (a: Sequence X) (x: X): ConvergesTo d a x ↔ ∃ t, ConvergesTo d (tail a t) x := by
+  constructor
+  · intro h
+    exists 0
+  · intro ⟨t, ht⟩ r hr
+    have ⟨n, hn⟩ := ht r hr
+    exists n + t
+    intro m hm
+    simp [tail] at hn
+    have := hn (m - t) (Nat.le_sub_of_add_le hm)
+    rw [Nat.sub_add_cancel (Nat.le_of_add_left_le hm)] at this
+    exact this
 
-theorem limit_unique {d: Metric X D} {s: Nat → X} {x₁ x₂: X} (h₁: converges_to d s x₁) (h₂: converges_to d s x₂): x₁ = x₂ := by
+theorem not_lt_self (x: D): ¬(x < x) := by
+  exact Std.Irrefl.irrefl x
+
+theorem le_antisymm {x₁ x₂: D}: x₁ ≤ x₂ → x₂ ≤ x₁ → x₁ = x₂ := by
   sorry
 
+theorem le_add {x₁ x₂ y₁ y₂: D} (h₁: x₁ < y₁) (h₂: x₂ < y₂): x₁ + x₂ < y₁ + y₂ := by
+  sorry
+
+theorem le_lt_trans {x y z: D} (h₁: x ≤ y) (h₂: y < z): x < z := by
+  sorry
+
+theorem not_lt {x y: D}: ¬x < y ↔ y ≤ x := by
+  sorry
+
+theorem eq_bot_iff (x₀: D): x₀ = ⊥ ↔ ∀ x, ⊥ < x → x₀ < x := by
+  constructor
+  · intro h _ hx
+    exact lt_of_eq_of_lt h hx
+  · intro h
+    have h' := h x₀
+    by_cases hx: ⊥ < x₀
+    · have := h' hx
+      have := not_lt_self x₀
+      contradiction
+    · have hx₀: x₀ ≤ ⊥ := by exact not_lt.mp hx
+      have hx: ∀ x: D, ⊥ ≤ x := by exact Bottom.bottom_le
+      have hx₀':= hx x₀
+      exact le_antisymm hx₀ hx₀'
+
+theorem limit_unique {d: Metric X D} {a: Sequence X} {x₁ x₂: X} (h₁: ConvergesTo d a x₁) (h₂: ConvergesTo d a x₂): x₁ = x₂ := by
+  apply (d.distance_bot_iff x₁ x₂).mp
+  apply (eq_bot_iff (d x₁ x₂)).mpr
+  intro r₀ hr₀
+  ------- need r = r₀ / 2 -------
+  have r: D := sorry
+  have hr: ⊥ < r := sorry
+  have hr': r₀ = r + r := sorry
+  -------------------------------
+  rw [hr']
+  have ⟨n₁, hn₁⟩ := h₁ r hr
+  have ⟨n₂, hn₂⟩ := h₂ r hr
+  by_cases h: n₁ ≤ n₂
+  · have dx₁ := (hn₁ n₂ h)
+    have dx₂ := (hn₂ n₂ (Nat.le_refl n₂))
+    rw [distance_symm] at dx₁
+    have := le_add dx₁ dx₂
+    exact (le_lt_trans (d.distance_triangle x₁ (a n₂) x₂) this)
+  · have dx₂ := (hn₂ n₁ (Nat.le_of_not_ge h))
+    have dx₁ := (hn₁ n₁ (Nat.le_refl n₁))
+    rw [distance_symm] at dx₂ ⊢
+    have := le_add dx₂ dx₁
+    exact (le_lt_trans (d.distance_triangle x₂ (a n₁) x₁) this)
+
+
+
+-- Open and closed balls
+
+def OpenBall (d: Metric X D) (x₀: X) (r: D): Set X :=
+  λ x ↦ d x₀ x < r
+
+def ClosedBall (d: Metric X D) (x₀: X) (r: D): Set X :=
+  λ x ↦ d x₀ x ≤ r
+
+def Sphere (d: Metric X D) (x₀: X) (r: D): Set X :=
+  λ x ↦ d x₀ x = r
+
+-- Open set
+
+def is_open_set (d: Metric X D) (S: Set X): Prop :=
+  ∀ x, S x → ∃ r, OpenBall d x r ⊆ S
+
 /-
-
-TODO:
-
-- define open/closed ball and sphere
-- define an open set
-- monotone ball inclusion
-- boundedness? maybe
+  TODO:
+  - monotone ball inclusion
+  - boundedness
 -/
+
+-- Cauchy
+
+def cauchy (d: Metric X D) (a: Sequence X): Prop :=
+  ∀ r, 0 < r → ∃ N, ∀ m n, N ≤ m → N ≤ n → d (a m) (a n) < r
