@@ -1,3 +1,7 @@
+import Algae.Constructions.Integer
+import Algae.RingTheory.Field
+import Algae.RingTheory.Localization
+
 /-
 
 Construction of the rationals.
@@ -6,22 +10,22 @@ Need to show
 - field
 - poset/lattice
 
-TODO:
-- integrate localization
-
 -/
 
-import Algae.Constructions.Integer
-import Algae.RingTheory.Field
+-- ℤ is an integral domain.
 
--- (a, b) ∼ (c, d) if a * d = b * c
-def QuotientRelation: Endorelation (ℤ × ℤ) :=
-  fun (a, b) (c, d) => a * d = b * c
+theorem Integer.integral_domain: Localization.IntegralDomain ℤ := by
+  constructor
+  · sorry
+  · sorry
+
+-- Define ℚ via the localization.
 
 def Rational: Type :=
-  Quotient ⟨QuotientRelation, sorry⟩
+  Localization.quotient (Localization.nonzero_mul_closed Integer.integral_domain)
 
 abbrev ℚ: Type :=
   Rational
 
-instance: Field ℚ := sorry
+instance: Field ℚ :=
+  Localization.FieldOfFractions Integer.integral_domain
