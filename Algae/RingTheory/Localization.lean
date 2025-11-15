@@ -111,7 +111,7 @@ def quotient (h: M.sub β): Type u :=
 def setoid.full: Setoid (α × @Set.full α) :=
   setoid M.full_sub
 
-def quotient.full: Type u :=
+abbrev quotient.full (α: Type u) [M: CommMonoid α]: Type u :=
   quotient M.full_sub
 
 def quotient.unit (h: M.sub β): quotient h :=
@@ -205,9 +205,8 @@ theorem quotient.inv.lifts: ∀ a b: α × @Set.full α, a ≈ b → Quotient.mk
 def quotient.inv: quotient.full (α := α) → quotient.full (α := α) :=
   λ x ↦ Quotient.liftOn x _ quotient.inv.lifts
 
-
 -- The "full" localization on the whole monoid (i.e. the group of differences.)
-def Localization.full: CommGroup (quotient M.full_sub) := {
+def Localization.group_of_differences: CommGroup (quotient.full α) := {
   inv := quotient.inv
   inverse := by
     constructor <;> (
@@ -234,7 +233,9 @@ variable {α: Type u} [R: Semiring α] {β: Set α}
 -- This seems to require β to be an ideal...
 -- worst case we can take β = full?
 def quotient.upper.op_pre (h: R.toAddMonoid.sub β): Op (α × β) :=
-  λ (a₁, ⟨b₁, h₁⟩) (a₂, ⟨b₂, h₂⟩) ↦ (a₁ * a₂ + b₁ * b₂, ⟨a₁ * b₂ + a₂ * b₁, by sorry⟩)
+  λ (a₁, ⟨b₁, h₁⟩) (a₂, ⟨b₂, h₂⟩) ↦ (a₁ * a₂ + b₁ * b₂, ⟨a₁ * b₂ + a₂ * b₁, by {
+    sorry
+  }⟩)
 
 theorem quotient.upper.op_lifts (h: R.toAddMonoid.sub β): ∀ a b c d: (α × β), a ≈ c → b ≈ d → Quotient.mk (setoid h) (quotient.upper.op_pre h a b) = Quotient.mk (setoid h) (quotient.upper.op_pre h c d) := by
   intro ⟨a₁, a₂⟩ ⟨b₁, b₂⟩ ⟨c₁, c₂⟩ ⟨d₁, d₂⟩ ⟨t₁, ht₁₁, ht₁₂⟩ ⟨t₂, ht₂₁, ht₂₂⟩
@@ -259,10 +260,12 @@ instance Localization.additive [R: Semiring α] (h: R.toAddMonoid.sub β): Semir
 }
 
 -- If we localize by all elements, we get a ring.
-instance Localization.additive_full [R: Semiring α]: Ring (quotient R.toAddMonoid.full_sub) := {
+instance Localization.additive_group_of_differences [R: Semiring α]: Ring (quotient R.toAddMonoid.full_sub) := {
   neg := sorry
   add_neg := sorry
 }
+
+-- TODO: also the additive localization of a commutative semiring should give a commutative ring.
 
 end Additive
 
