@@ -228,3 +228,20 @@ theorem zero_eq_one_trivial [Ring α] (h: (0: α) = 1): ∀ a b: α, a = b := by
 
 theorem mul_comm [CommRing α] (a b: α): a * b = b * a := by
   apply CommRing.mul_comm
+
+
+
+def Semiring.NoZeroDivisors {α: Type u} [Semiring α]: Prop :=
+  ∀ a b: α, a ≠ 0 → b ≠ 0 → a * b ≠ 0
+
+def Semiring.trivial {α: Type u} [Semiring α]: Prop :=
+  (0: α) = (1: α)
+
+class IntegralDomain (α: Type u) extends R: CommRing α where
+  no_zero_divisors: R.NoZeroDivisors
+  nontrivial: ¬ R.trivial
+
+theorem IntegralDomain.nonzero_submonoid {α: Type u} [R: IntegralDomain α]: R.toMulMonoid.sub (λ r ↦ r ≠ 0) := {
+  unit_mem := Ne.symm nontrivial
+  op_closed := no_zero_divisors
+}

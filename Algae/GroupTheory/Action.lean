@@ -145,7 +145,7 @@ theorem orbit_transitive [Group α] {A: Action X α} {x y z: X} (h₁: y ∈ Orb
   exists a + b
   rw [←act_op, ha, hb]
 
-theorem action_transitive_iff_orbit_full [Group α] {A: Action X α}: A.transitive ↔ ∀ x, A.orbit x = Set.full X := by
+theorem action_transitive_iff_orbit_full [Group α] {A: Action X α}: A.transitive ↔ ∀ x, A.orbit x = Set.full := by
   constructor
   · intro h x
     funext y
@@ -155,7 +155,7 @@ theorem action_transitive_iff_orbit_full [Group α] {A: Action X α}: A.transiti
     · intro; exact h x y
   · intro h x y
     have hx := h x
-    have: y ∈ Set.full X := trivial
+    have: y ∈ Set.full := trivial
     rw [←hx] at this
     exact this
 

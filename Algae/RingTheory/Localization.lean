@@ -1,46 +1,58 @@
-import Algae.RingTheory.Ring
+import Algae.RingTheory.Field
 
 /-
 
-The equivalence relations for group of differences of a commutative monoid and
-localization of a commutative ring are identical:
+Defines localization of a commutative monoid, as well as extensions to rings.
 
-For group of differences:
-  a₁ + b₂ + k = a₂ + b₁ + k
+- Given a commutative monoid M and a submonoid S, define the localization M / S.
+- When S = M then we get the group of differences of M.
 
-For localization:
-  k * (a₁ * b₂ - a₂ * b₁) = 0
-              ↔
-  a₁ * b₂ * k = a₂ * b₁ * k
+For rings, there are additive/multiplicative variants of the localization.
 
-Also importantly the way we define the "lifted" operation is identical:
+1. Additive localization (group of differences):
+  - Equivalence: (a₁, b₁) ≃ (a₂, b₂) := ∃ k, a₁ + b₂ + k = a₂ + b₁ + k
 
-For group of differences:
-  (a₁ - b₁) + (a₂ - b₂) = (a₁ + a₂) - (b₂ + b₂)
+  - Addition: (a₁ - b₁) + (a₂ - b₂) := (a₁ + a₂) - (b₂ + b₂)
 
-For localization:
-  a₁/b₁ * a₂/b₂ = a₁a₂/b₁b₂
+  - Multiplication: (a₁ - b₁) * (a₂ - b₂) = (a₁a₂ + b₁b₂) - (a₁b₂ + a₂b₁)
 
-So to generalize we need a construction that adds inverses to *some* elements
-of a commutative monoid, where the "denominators" or "negatives" are taken from
-some submonoid.
+2. Multiplicative localization:
+  - Equivalence: (a₁, b₁) ≃ (a₂, b₂) := ∃ k, k * (a₁ * b₂ - a₂ * b₁) = 0
+
+                          equivalently, ∃ k, a₁ * b₂ * k = a₂ * b₁ * k
+
+  - Multiplication: (a₁ / b₁) * (a₂ / b₂) := (a₁ * a₂) / (b₁ * b₂)
+
+  - Addition: (a₁ / b₁) + (a₂ / b₂) = (a₁b₂ + a₂b₁) / (b₁b₂)
+
+In the former case, multiplication is called the "upper" operation
+in the latter, addition is called the "lower" operation.
+
+TODO:
+- Prove when R is a semiring and S = R then R/S is a ring.
+- Prove when R is an integral domain and S = R \ {0} then R/S is a field.
+- How to systematically lift order structure?
+- (Subobject) Construct an embedding R -> R/S sending x to (x, unit).
+- (Idempotence) Prove if G is already a group then G/G is isomorphic to G.
+- Prove if S = R then the multiplicative localization is the trivial ring
+  (since 0 is given an inverse, then 1 = 0 * 0⁻¹ = 0 → 0 = 1)
 
 -/
 
 namespace Localization
 
-variable {α: Type u} [M: CommMonoid α] {β: Set α}
+section Monoid
 
-section MonoidLocalization
+variable {α: Type u} [M: CommMonoid α] {β: Set α}
 
 open Monoid
 
 -- Define the relation on α × β.
 
-def relation (β: Set α) [CommMonoid α]: α × β → α × β → Prop :=
+def relation (β: Set α): α × β → α × β → Prop :=
   λ (a₁, ⟨b₁, _⟩) (a₂, ⟨b₂, _⟩) ↦ ∃ t ∈ β, a₁ + b₂ + t = a₂ + b₁ + t
 
-instance (α: Type u) (β: Set α) [CommMonoid α]: HasEquiv (α × β) := {
+instance: HasEquiv (α × β) := {
   Equiv := relation β
 }
 
@@ -86,26 +98,32 @@ theorem equivalence (h: M.sub β): Equivalence (relation β) := {
 
 -- Define the quotient.
 
-def setoid [M: CommMonoid α] (h: M.sub β): Setoid (α × β) := {
+def setoid (h: M.sub β): Setoid (α × β) := {
   r := relation β
   iseqv := equivalence h
 }
 
-def quotient [M: CommMonoid α] (h: M.sub β): Type u :=
+
+
+def quotient (h: M.sub β): Type u :=
   Quotient (setoid h)
 
+def setoid.full: Setoid (α × @Set.full α) :=
+  setoid M.full_sub
+
+def quotient.full: Type u :=
+  quotient M.full_sub
+
+def quotient.unit (h: M.sub β): quotient h :=
+  Quotient.mk _ (0, ⟨0, h.unit_mem⟩)
+
+
 -- Lift the operation "add" to the quotient.
+-- first define the "pre" operation on α × β then prove it lifts.
+def quotient.op_pre (h: M.sub β): Op (α × β) :=
+  λ (a₁, ⟨b₁, h₁⟩) (a₂, ⟨b₂, h₂⟩) ↦ (a₁ + a₂, ⟨b₁ + b₂, h.op_closed b₁ b₂ h₁ h₂⟩)
 
-def add_pairs [h: M.sub β]: (α × β) → (α × β) → (α × β) := by
-    intro (a₁, ⟨b₁, h₁⟩) (a₂, ⟨b₂, h₂⟩)
-    have h: (b₁ + b₂) ∈ β := by apply h.op_closed b₁ b₂ h₁ h₂
-    exact (a₁ + a₂, ⟨b₁ + b₂, h⟩)
-
-instance [h: M.sub β]: Add (α × β) := {
-  add := add_pairs
-}
-
-theorem quotient_op (h: M.sub β): ∀ a b c d: (α × β), a ≈ c → b ≈ d → Quotient.mk (setoid h) (a + b) = Quotient.mk (setoid h) (c + d) := by
+theorem quotient.op_lifts (h: M.sub β): ∀ a b c d: (α × β), a ≈ c → b ≈ d → Quotient.mk (setoid h) (quotient.op_pre h a b) = Quotient.mk (setoid h) (quotient.op_pre h c d) := by
   intro ⟨a₁, a₂⟩ ⟨b₁, b₂⟩ ⟨c₁, c₂⟩ ⟨d₁, d₂⟩ ⟨t₁, ht₁₁, ht₁₂⟩ ⟨t₂, ht₂₁, ht₂₂⟩
   apply Quotient.sound
   exists t₁ + t₂
@@ -127,15 +145,15 @@ theorem quotient_op (h: M.sub β): ∀ a b c d: (α × β), a ≈ c → b ≈ d 
       _ = c₁ + d₁ + (a₂ + (b₂ + (t₁ + t₂))) := by simp [op_comm]
       _ = c₁ + d₁ + (a₂ + b₂) + (t₁ + t₂)   := by simp [op_assoc]
 
-instance (h: M.sub β): Add (quotient h) := {
-  add := λ x y ↦ Quotient.liftOn₂ x y _ (quotient_op h)
-}
+def quotient.op (h: M.sub β): Op (quotient h) :=
+  λ x y ↦ Quotient.liftOn₂ x y _ (quotient.op_lifts h)
+
 
 -- Show α / β is a commutative monoid.
 
-instance LocalizationMonoid (α: Type u) (β: Set α) [M: CommMonoid α] (h: M.sub β): CommMonoid (quotient h) := {
-  unit := Quotient.mk _ (0, ⟨0, h.unit_mem⟩)
-  op := Add.add
+instance Localization (h: M.sub β): CommMonoid (quotient h) := {
+  unit := quotient.unit h
+  op := quotient.op h
   identity := by
     constructor <;> (
       intro x
@@ -168,23 +186,29 @@ instance LocalizationMonoid (α: Type u) (β: Set α) [M: CommMonoid α] (h: M.s
     · simp [op_comm]
 }
 
--- Show if β = α (full set), then α / β is a group (group of differences).
 
-def GroupOfDifferences (α: Type u) [M: CommMonoid α]: CommGroup (quotient M.full_sub) := {
-  inv := by
-    intro x
-    apply Quotient.liftOn x (λ (a, b) => Quotient.mk _ (b, ⟨a, trivial⟩))
-    intro (a₁, ⟨b₁, h₁⟩) (a₂, ⟨b₂, h₂⟩) ⟨t, ht₁, ht₂⟩
-    simp
-    apply Quotient.sound
-    exists t
-    constructor
-    · trivial
-    · calc
-        b₁ + a₂ + t
-        _ = a₂ + b₁ + t := by simp [op_comm]
-        _ = a₁ + b₂ + t := by rw [ht₂]
-        _ = b₂ + a₁ + t := by simp [op_comm]
+def quotient.inv_pre: α × @Set.full α → α × @Set.full α :=
+  λ (a, b) =>(b, ⟨a, by trivial⟩)
+
+theorem quotient.inv.lifts: ∀ a b: α × @Set.full α, a ≈ b → Quotient.mk setoid.full (quotient.inv_pre a) = Quotient.mk setoid.full (quotient.inv_pre b) := by
+  intro (a₁, ⟨b₁, h₁⟩) (a₂, ⟨b₂, h₂⟩) ⟨t, ht₁, ht₂⟩
+  apply Quotient.sound
+  exists t
+  constructor
+  · trivial
+  · calc
+      b₁ + a₂ + t
+      _ = a₂ + b₁ + t := by simp [op_comm]
+      _ = a₁ + b₂ + t := by rw [ht₂]
+      _ = b₂ + a₁ + t := by simp [op_comm]
+
+def quotient.inv: quotient.full (α := α) → quotient.full (α := α) :=
+  λ x ↦ Quotient.liftOn x _ quotient.inv.lifts
+
+
+-- The "full" localization on the whole monoid (i.e. the group of differences.)
+def Localization.full: CommGroup (quotient M.full_sub) := {
+  inv := quotient.inv
   inverse := by
     constructor <;> (
       intro x
@@ -198,44 +222,61 @@ def GroupOfDifferences (α: Type u) [M: CommMonoid α]: CommGroup (quotient M.fu
     )
 }
 
-end MonoidLocalization
+end Monoid
 
+section Additive
+
+-- The additive localizatoin.
+
+variable {α: Type u} [R: Semiring α] {β: Set α}
+
+-- The "upper" operation, i.e. the multiplication when we are localizing addition.
+-- This seems to require β to be an ideal...
+-- worst case we can take β = full?
+def quotient.upper.op_pre (h: R.toAddMonoid.sub β): Op (α × β) :=
+  λ (a₁, ⟨b₁, h₁⟩) (a₂, ⟨b₂, h₂⟩) ↦ (a₁ * a₂ + b₁ * b₂, ⟨a₁ * b₂ + a₂ * b₁, by sorry⟩)
+
+theorem quotient.upper.op_lifts (h: R.toAddMonoid.sub β): ∀ a b c d: (α × β), a ≈ c → b ≈ d → Quotient.mk (setoid h) (quotient.upper.op_pre h a b) = Quotient.mk (setoid h) (quotient.upper.op_pre h c d) := by
+  intro ⟨a₁, a₂⟩ ⟨b₁, b₂⟩ ⟨c₁, c₂⟩ ⟨d₁, d₂⟩ ⟨t₁, ht₁₁, ht₁₂⟩ ⟨t₂, ht₂₁, ht₂₂⟩
+  apply Quotient.sound
+  sorry
+
+def quotient.upper.op (h: R.toAddMonoid.sub β): Op (quotient h) :=
+  λ x y ↦ Quotient.liftOn₂ x y _ (quotient.upper.op_lifts h)
+
+-- The additive localization of a semiring.
+instance Localization.additive [R: Semiring α] (h: R.toAddMonoid.sub β): Semiring (quotient h) := {
+  add       := (Localization h).op
+  zero      := (Localization h).unit
+  add_assoc := (Localization h).assoc
+  add_zero  := (Localization h).identity
+  add_comm  := (Localization h).comm
+  mul := quotient.upper.op h
+  one := sorry
+  mul_assoc := sorry
+  mul_one := sorry
+  distrib := sorry
+}
+
+-- If we localize by all elements, we get a ring.
+instance Localization.additive_full [R: Semiring α]: Ring (quotient R.toAddMonoid.full_sub) := {
+  neg := sorry
+  add_neg := sorry
+}
+
+end Additive
+
+section Multiplicative
+
+-- Multiplicative localization.
 
 variable {α: Type u} [R: CommRing α] {β: Set α}
 
--- Show if α is a ring, and β is a submonoid of the multiplicative monoid,
--- then α / β is a ring (localization of a commutative ring at β).
+-- The "lower" operation, i.e. addition.
+def quotient.lower.op_pre (h: R.toMulMonoid.sub β): Op (α × β) :=
+  λ (a₁, ⟨b₁, h₁⟩) (a₂, ⟨b₂, h₂⟩) ↦ (a₁ * b₂ + a₂ * b₁, ⟨b₁ * b₂, h.op_closed b₁ b₂ h₁ h₂⟩)
 
--- First, define operations
-
-instance [h: R.toMulMonoid.sub β]: Zero (α × β) := {
-  zero := (0, ⟨1, h.unit_mem⟩)
-}
-
-instance [h: R.toMulMonoid.sub β]: One (α × β) := {
-  one := (1, ⟨1, h.unit_mem⟩)
-}
-
-instance [h: R.toMulMonoid.sub β]: Add (α × β) := {
-  add := by
-    intro (r₁, ⟨s₁, h₁⟩) (r₂, ⟨s₂, h₂⟩)
-    have h: (s₁ * s₂) ∈ β := by apply h.op_closed s₁ s₂ h₁ h₂
-    exact (r₁ * s₂ + r₂ * s₁, ⟨s₁ * s₂, h⟩)
-}
-
-instance: Neg (α × β) := {
-  neg := by
-    intro (r, s)
-    exact (-r, s)
-}
-
-instance [h: R.toMulMonoid.sub β]: Mul (α × β) := {
-  mul := add_pairs
-}
-
--- Show the operations are well defined
-
-theorem quotient_add (h: R.toMulMonoid.sub β): ∀ a b c d: (α × β), a ≈ c → b ≈ d → Quotient.mk (setoid h) (a + b) = Quotient.mk (setoid h) (c + d) := by
+theorem quotient.lower.op_lifts (h: R.toMulMonoid.sub β): ∀ a b c d: (α × β), a ≈ c → b ≈ d → Quotient.mk (setoid h) (quotient.lower.op_pre h a b) = Quotient.mk (setoid h) (quotient.lower.op_pre h c d) := by
   intro ⟨a₁, a₂⟩ ⟨b₁, b₂⟩ ⟨c₁, c₂⟩ ⟨d₁, d₂⟩ ⟨t₁, ht₁₁, ht₁₂⟩ ⟨t₂, ht₂₁, ht₂₂⟩
   apply Quotient.sound
   exists t₁ * t₂
@@ -245,7 +286,13 @@ theorem quotient_add (h: R.toMulMonoid.sub β): ∀ a b c d: (α × β), a ≈ c
     · exact ht₂₁
   · sorry
 
-theorem quotient_neg (h: R.toMulMonoid.sub β): ∀ a b: (α × β), a ≈ b → Quotient.mk (setoid h) (-a) = Quotient.mk (setoid h) (-b) := by
+def quotient.lower.op (h: R.toMulMonoid.sub β): Op (quotient h) :=
+  λ x y ↦ Quotient.liftOn₂ x y _ (quotient.lower.op_lifts h)
+
+def quotient.lower.inv_pre: α × β → α × β :=
+  λ (r, s) ↦ (-r, s)
+
+theorem quotient.lower.inv_lifts (h: R.toMulMonoid.sub β): ∀ a b: (α × β), a ≈ b → Quotient.mk (setoid h) (quotient.lower.inv_pre a) = Quotient.mk (setoid h) (quotient.lower.inv_pre b) := by
   intro _ _ ⟨t, ht₁, ht₂⟩
   apply Quotient.sound
   exists t
@@ -253,39 +300,18 @@ theorem quotient_neg (h: R.toMulMonoid.sub β): ∀ a b: (α × β), a ≈ b →
   · exact ht₁
   · sorry
 
--- Define instances
+def quotient.lower.inv (h: R.toMulMonoid.sub β): quotient h → quotient h :=
+  λ x ↦ Quotient.liftOn x _ (quotient.lower.inv_lifts h)
 
-instance [h: R.toMulMonoid.sub β]: Zero (quotient h) := {
-  zero := Quotient.mk _ 0
-}
-
-instance [h: R.toMulMonoid.sub β]: One (quotient h) := {
-  one := Quotient.mk _ 1
-}
-
-instance [h: R.toMulMonoid.sub β]: Neg (quotient h) := {
-  neg := λ x ↦ Quotient.liftOn x _ (quotient_neg h)
-}
-
-instance [h: R.toMulMonoid.sub β]: Add (quotient h) := {
-  add := λ x y ↦ Quotient.liftOn₂ x y _ (quotient_add h)
-}
-
-instance [h: R.toMulMonoid.sub β]: Mul (quotient h) := {
-  mul := λ x y ↦ Quotient.liftOn₂ x y _ (quotient_op h)
-}
-
--- Finally, show it is a ring
-
-def LocalizationOfRing [R: CommRing α] (h: R.toMulMonoid.sub β): CommRing (quotient h) := {
-  one       := 1
-  mul       := Mul.mul
-  mul_assoc := (LocalizationMonoid α β h).assoc
-  mul_comm  := (LocalizationMonoid α β h).comm
-  mul_one   := (LocalizationMonoid α β h).identity
-  zero := 0
-  add := Add.add
-  neg := Neg.neg
+-- The multiplicative localization of a commutative ring.
+instance Localization.multiplicative [R: CommRing α] (h: R.toMulMonoid.sub β): CommRing (quotient h) := {
+  mul       := (Localization h).op
+  one       := (Localization h).unit
+  mul_assoc := (Localization h).assoc
+  mul_one   := (Localization h).identity
+  mul_comm  := (Localization h).comm
+  add := quotient.lower.op h
+  zero := Quotient.mk _ (0, ⟨1, h.unit_mem⟩)
   add_assoc := by
     intro x y z
     refine Quotient.inductionOn₃ x y z ?_
@@ -302,12 +328,6 @@ def LocalizationOfRing [R: CommRing α] (h: R.toMulMonoid.sub β): CommRing (quo
         _ = (a₁ * (b₂ * c₂) + (b₁ * c₂ * a₂ + c₁ * b₂ * a₂)) * (a₂ * (b₂ * c₂)) * 1   := by simp [mul_assoc, add_assoc]
         _ = (a₁ * (b₂ * c₂) + (b₁ * c₂ + c₁ * b₂) * a₂) * (a₂ * (b₂ * c₂)) * 1        := by simp [distrib_right]
         _ = (a₁ * (b₂ * c₂) + (b₁ * c₂ + c₁ * b₂) * a₂) * (a₂ * b₂ * c₂) * 1          := by simp [mul_assoc]
-  add_comm := by
-    intro x y
-    refine Quotient.inductionOn₂ x y ?_
-    intro ⟨a₁, a₂⟩ ⟨b₁, b₂⟩
-    apply Quotient.sound
-    sorry
   add_zero := by
     constructor <;> (
       intro x
@@ -324,6 +344,7 @@ def LocalizationOfRing [R: CommRing α] (h: R.toMulMonoid.sub β): CommRing (quo
     · calc
       (a₁ * 1 + 0 * a₂) * a₂ * 1
       _ = a₁ * (a₂ * 1) * 1 := by simp [mul_zero_left, add_zero_right, mul_one_right]
+  neg := quotient.lower.inv h
   add_neg := by
     constructor
     · intro x
@@ -332,6 +353,12 @@ def LocalizationOfRing [R: CommRing α] (h: R.toMulMonoid.sub β): CommRing (quo
       apply Quotient.sound
       sorry
     · sorry
+  add_comm := by
+    intro x y
+    refine Quotient.inductionOn₂ x y ?_
+    intro ⟨a₁, a₂⟩ ⟨b₁, b₂⟩
+    apply Quotient.sound
+    sorry
   distrib := by
     constructor
     · intro x y z
@@ -341,3 +368,7 @@ def LocalizationOfRing [R: CommRing α] (h: R.toMulMonoid.sub β): CommRing (quo
       sorry
     · sorry
 }
+
+-- TODO: if we localize by all nonzero elements, we should get a field.
+
+end Multiplicative

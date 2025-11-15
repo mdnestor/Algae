@@ -17,15 +17,16 @@ Want to show they are
 -- This gives us an additive commutative monoid.
 
 def Integer: Type :=
-  @Localization.quotient ℕ (Set.full ℕ) (CommSemiring.toAddMonoid) (Monoid.full_sub _)
+  @Localization.quotient.full ℕ CommSemiring.toAddMonoid
 
-def PositiveRational: Type :=
-  @Localization.quotient ℕ (Set.full ℕ) (CommSemiring.toMulMonoid) (Monoid.full_sub _)
+def NonnegRational: Type :=
+  @Localization.quotient.full ℕ CommSemiring.toMulMonoid
 
 abbrev ℤ: Type :=
   Integer
 
-instance Integer.AddGroup: CommGroup ℤ :=
-  @Localization.GroupOfDifferences ℕ (CommSemiring.toAddMonoid)
+instance: CommGroup ℤ :=
+  @Localization.Localization.full ℕ CommSemiring.toAddMonoid
 
--- TODO: multiplicative monoid on integers.
+instance: CommRing ℤ :=
+  sorry

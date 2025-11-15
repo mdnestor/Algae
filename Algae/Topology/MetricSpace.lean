@@ -242,7 +242,10 @@ abbrev Endometric (D: Type u) [DistanceSpace D]: Type u :=
 def CauchyRelation (d₀: Endometric D) (d: Metric X D): Endorelation (Sequence X) :=
   λ a b ↦ ConvergesTo d₀ (λ n ↦ d (a n) (b n)) ⊥
 
-theorem CauchyRelation.equiv (hd: DistanceComplete D) (d₀: Endometric D) (hd₀: ∀ r, d₀ r ⊥ = r) (d: Metric X D): Equivalence (CauchyRelation d₀ d) := {
+def Endometric.obedient (d₀: Endometric D): Prop :=
+  ∀ r, d₀ r ⊥ = r
+
+theorem CauchyRelation.equiv (hd: DistanceComplete D) (d₀: Endometric D) (hd₀: d₀.obedient) (d: Metric X D): Equivalence (CauchyRelation d₀ d) := {
   refl := by
     intro _ _ hr
     exists 321
@@ -266,10 +269,14 @@ theorem CauchyRelation.equiv (hd: DistanceComplete D) (d₀: Endometric D) (hd�
     intro m hm
     simp_all
     apply le_lt_trans
-    apply d.distance_triangle _ (b m)
-    apply lt_le_trans
-    apply le_add
-    exact hn₁ m (Nat.max_le.mp hm).left
-    exact hn₂ m (Nat.max_le.mp hm).right
-    exact hr₂
+    sorry
+    sorry
+    sorry
+    -- something broke
+    -- apply d.distance_triangle _ (b m)
+    -- apply lt_le_trans
+    -- apply le_add
+    -- exact hn₁ m (Nat.max_le.mp hm).left
+    -- exact hn₂ m (Nat.max_le.mp hm).right
+    -- exact hr₂
 }

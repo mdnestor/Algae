@@ -47,7 +47,7 @@ def Pointed.hom.comp {P₁: Pointed α} {P₂: Pointed β} {P₃: Pointed γ} (f
 class Pointed.sub (P: Pointed α) (S: Set α): Prop where
   unit_mem: 0 ∈ S
 
-theorem Pointed.sub.full (P: Pointed α): P.sub (Set.full α) := {
+theorem Pointed.sub.full (P: Pointed α): P.sub Set.full := {
   unit_mem := trivial
 }
 

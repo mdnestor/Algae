@@ -70,31 +70,7 @@ def Group.symm_embed (G: Group α) (g: α): Symm α := {
 
 -- Next we can show the embedding above is a group homomorphisms.
 
-def Group.symm_embed_hom (G: Group α): hom G (Group.symm α) := {
-  map := G.symm_embed
-  unit_preserving := by
-    ext a
-    · exact op_unit_left a
-    · calc
-        -0 + a
-        _ = 0 + a := by rw [inv_unit]
-        _ = a := by rw [op_unit_left]
-  op_preserving := by
-    intro g₁ g₂; ext a
-    · calc
-        (g₁ + g₂) + a
-        _ = g₁ + (g₂ + a) := by rw [op_assoc]
-    · calc
-        -(g₁ + g₂) + a
-        _ = (-g₂ + -g₁) + a := by rw [inv_op]
-        _ = -g₂ + (-g₁ + a) := by rw [op_assoc]
-  inv_preserving := by
-    intro g; ext a
-    · rfl
-    · calc
-        -(-g) + a
-        _ = g + a := by rw [inv_inv]
-}
+def Group.symm_embed_hom (G: Group α): hom G (Group.symm α) := sorry -- broke it :(
 
 -- Finally we show the embedding is injective.
 
@@ -110,4 +86,4 @@ def Group.symm_embed_left_invertible (G: Group α): LeftInvertible α (Symm α) 
 -- The image of the embedding is a subgroup.
 
 theorem Group.symm_embed_subgroup (G: Group α): (Group.symm α).sub (Set.range G.symm_embed) := by
-  exact G.symm_embed_hom.image_sub
+  sorry

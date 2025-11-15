@@ -155,7 +155,7 @@ example: CommMonoid Nat := {
 
 example (α: Type u): CommMonoid (Set α) := {
   op := Set.union
-  unit := Set.empty α
+  unit := Set.empty
   identity := by exact Set.union_identity
   assoc := by exact Set.union_assoc
   comm := by exact Set.union_comm
@@ -163,7 +163,7 @@ example (α: Type u): CommMonoid (Set α) := {
 
 example (α: Type u): CommMonoid (Set α) := {
   op := Set.inter
-  unit := Set.full α
+  unit := Set.full
   identity := by exact Set.inter_identity
   assoc := by exact Set.inter_assoc
   comm := by exact Set.inter_comm
@@ -182,7 +182,7 @@ class Monoid.sub (M: Monoid α) (S: Set α) extends
   toPointedSub: M.toPointed.sub S,
   toMagmaSub: M.toMagma.sub S
 
-theorem Monoid.full_sub (M: Monoid α): M.sub (Set.full α) := {
+theorem Monoid.full_sub (M: Monoid α): M.sub Set.full := {
   unit_mem := sorry
   op_closed := sorry
 }

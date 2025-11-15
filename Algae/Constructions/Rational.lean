@@ -13,18 +13,18 @@ Need to show
 
 -- ℤ is an integral domain.
 
-theorem Integer.integral_domain: Localization.IntegralDomain ℤ := by
-  constructor
-  · sorry
-  · sorry
+instance: IntegralDomain ℤ := {
+  no_zero_divisors := sorry
+  nontrivial := sorry
+}
 
 -- Define ℚ as the field of fractions of ℤ, which is the localization of ℤ by ℤ \ {0}.
 
 def Rational: Type :=
-  Localization.quotient (Localization.nonzero_mul_closed Integer.integral_domain)
+  sorry
 
 abbrev ℚ: Type :=
   Rational
 
 instance: Field ℚ :=
-  Localization.FieldOfFractions Integer.integral_domain
+  sorry

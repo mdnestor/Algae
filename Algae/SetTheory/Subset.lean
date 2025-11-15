@@ -9,10 +9,10 @@ instance (α: Type u): CoeSort (Set α) (Type u) := {
   coe := Subtype
 }
 
-def Set.empty (α: Type u): Set α :=
+def Set.empty {α: Type u}: Set α :=
   λ _ ↦ False
 
-def Set.full (α: Type u): Set α :=
+def Set.full {α: Type u}: Set α :=
   λ _ ↦ True
 
 def Set.nonempty {α: Type u} (S: Set α): Prop :=
@@ -31,13 +31,13 @@ instance: HasSubset (Set α) := {
 }
 
 instance: EmptyCollection (Set α) := {
-  emptyCollection := Set.empty α
+  emptyCollection := Set.empty
 }
 
 theorem Set.empty_subset (A: Set α): ∅ ⊆ A := by
   exact λ _ ↦ False.elim
 
-theorem Set.subset_full (A: Set α): A ⊆ Set.full α := by
+theorem Set.subset_full (A: Set α): A ⊆ Set.full := by
   exact λ _ _ ↦ trivial
 
 def Set.inter (A B: Set α): Set α :=
@@ -72,19 +72,19 @@ def Set.compl (A: Set α): Set α :=
 def Set.subtype (A: Set α): Type u :=
   Σ a, PLift (a ∈ A)
 
-theorem Set.union_left_identity: LeftIdentity Set.union (Set.empty α) := by
+theorem Set.union_left_identity: LeftIdentity Set.union (@Set.empty α) := by
   intro
   funext
   simp [Set.union]
   exact or_iff_right id
 
-theorem Set.union_right_identity: RightIdentity Set.union (Set.empty α) := by
+theorem Set.union_right_identity: RightIdentity Set.union (@Set.empty α) := by
   intro
   funext
   simp [Set.union]
   exact or_iff_left id
 
-theorem Set.union_identity: Identity Set.union (Set.empty α) := by
+theorem Set.union_identity: Identity Set.union (@Set.empty α) := by
   exact ⟨Set.union_left_identity, Set.union_right_identity⟩
 
 theorem Set.union_assoc: Associative (@Set.union α) := by
@@ -109,7 +109,7 @@ theorem Set.union_comm: Commutative (@Set.union α) := by
   simp [Set.union]
   exact Or.comm
 
-theorem Set.inter_identity: Identity Set.inter (Set.full α) := by
+theorem Set.inter_identity: Identity Set.inter (@Set.full α) := by
   constructor
   · intro
     funext

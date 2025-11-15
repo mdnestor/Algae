@@ -37,9 +37,9 @@ theorem zgen_subgroup [G: Group α] (a: α): G.sub (zmul_range a) := {
 }
 
 def Monoid.cyclic (M: Monoid α): Prop :=
-  ∃ a, nmul_range a = Set.full α
+  ∃ a, nmul_range a = @Set.full α
 
 def Group.cyclic (G: Group α): Prop :=
-  ∃ a, nmul_range a = Set.full α
+  ∃ a, nmul_range a = @Set.full α
 
 -- TODO: show Nat and Int are cyclic.
