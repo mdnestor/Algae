@@ -51,6 +51,13 @@ instance Semiring.toMulMonoid [Semiring α]: Monoid α := {
   assoc := mul_assoc
 }
 
+instance CommSemiring.toAddMonoid [CommSemiring α]: CommMonoid α :=
+  Semiring.toAddMonoid
+
+instance CommSemiring.toMulMonoid [CommSemiring α]: CommMonoid α := {
+  comm := CommSemiring.mul_comm
+}
+
 instance [CommSemiring α]: CommMonoid α := {
   op := Semiring.mul
   unit := Semiring.one

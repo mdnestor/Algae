@@ -182,6 +182,11 @@ class Monoid.sub (M: Monoid α) (S: Set α) extends
   toPointedSub: M.toPointed.sub S,
   toMagmaSub: M.toMagma.sub S
 
+theorem Monoid.full_sub (M: Monoid α): M.sub (Set.full α) := {
+  unit_mem := sorry
+  op_closed := sorry
+}
+
 theorem Monoid.hom.image_sub {M₁: Monoid α} {M₂: Monoid β} (f: hom M₁ M₂): M₂.sub (Set.range f) := {
   unit_mem := (Pointed.hom.image_sub f.toPointedHom).unit_mem
   op_closed := (Magma.hom.image_sub f.toMagmaHom).op_closed

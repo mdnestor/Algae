@@ -160,7 +160,7 @@ theorem le_bottom (a: ℕ): 0 ≤ a := by
 
 
 -- TODO: is also cancellative monoid
-instance: Semiring ℕ := {
+instance NaturalSemiring: CommSemiring ℕ := {
   add := add
   zero := zero
   add_assoc := add_assoc
@@ -171,6 +171,7 @@ instance: Semiring ℕ := {
   mul_assoc := mul_assoc
   mul_one := ⟨mul_one_left, mul_one_right⟩
   distrib := ⟨distrib_left, distrib_right⟩
+  mul_comm := sorry
 }
 
 -- TODO : prove is poset / lattice

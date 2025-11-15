@@ -29,7 +29,7 @@ theorem equivalence [CommMonoid α]: Equivalence (relation α) := {
     intro
     exists 0
   symm := by
-    intro _ _ ⟨k, hk⟩
+    intro (a₁, b₁) (a₂, b₂) ⟨k, hk⟩
     exists k
     exact (Eq.symm hk)
   trans := by
