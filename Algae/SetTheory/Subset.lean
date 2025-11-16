@@ -15,9 +15,6 @@ def Set.empty {α: Type u}: Set α :=
 def Set.full {α: Type u}: Set α :=
   λ _ ↦ True
 
-def Set.nonempty {α: Type u} (S: Set α): Prop :=
-  ∃ a, S a
-
 -- define this
 def Set.singleton {α: Type u} (a: α): Set α :=
   λ x ↦ x = a
@@ -68,6 +65,22 @@ theorem Set.union_right {A B: Set α} {a: α} (h: a ∈ B): a ∈ A ∪ B := by
 
 def Set.compl (A: Set α): Set α :=
   λ x ↦ x ∉ A
+
+def Set.nonempty (S: Set α): Prop :=
+  ∃ a, a ∈ S
+
+theorem Set.nonempty_iff {S: Set α}: S.nonempty ↔ S ≠ ∅ := by
+  constructor
+  intro ⟨a, ha⟩
+  exact ne_of_mem_of_not_mem' ha fun a => a
+  intro h
+  sorry
+
+theorem Set.not_nonempty_iff {S: Set α}: ¬S.nonempty ↔ S = ∅ := by
+  sorry
+
+theorem Set.compl_empty_iff {S: Set α}: S.compl = ∅ ↔ S = Set.full := by
+  sorry
 
 def Set.subtype (A: Set α): Type u :=
   Σ a, PLift (a ∈ A)
@@ -227,8 +240,20 @@ def Set.range (f: α → β): Set β :=
 theorem Set.range_mem (f: α → β) (a: α): f a ∈ Set.range f := by
   exists a
 
-def Set.iUnion (A: ι → Set α): Set α :=
-  λ a ↦ ∃ i, a ∈ A i
+def Set.sUnion (S: Set (Set α)): Set α :=
+  λ a ↦ ∃ A ∈ S, a ∈ A
 
-def Set.iInter (A: ι → Set α): Set α :=
-  λ a ↦ ∀ i, a ∈ A i
+theorem Set.sUnion_empty: Set.sUnion (∅: Set (Set α)) = ∅ := by
+  sorry
+
+theorem Set.sUnion_full: Set.sUnion (Set.full: Set (Set α)) = Set.full := by
+  sorry
+
+def Set.sInter (S: Set (Set α)): Set α :=
+  λ a ↦ ∀ A ∈ S, a ∈ A
+
+theorem Set.sInter_empty: Set.sUnion (∅: Set (Set α)) = Set.full := by
+  sorry
+
+theorem Set.sInter_full: Set.sUnion (Set.full: Set (Set α)) = ∅ := by
+  sorry
