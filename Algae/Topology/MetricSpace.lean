@@ -192,6 +192,15 @@ theorem limit_unique {d: Metric X D} {a: Sequence X} {x₁ x₂: X} (h₀: Dista
 def OpenBall (d: Metric X D) (x₀: X) (r: D): Set X :=
   λ x ↦ d x₀ x < r
 
+theorem OpenBall.empty (d: Metric X D) (x₀: X): OpenBall d x₀ ⊥ = Set.empty := by
+  funext x; simp
+  constructor
+  · intro ⟨_, _⟩
+    have := DistanceSpace.bottom_le (d x₀ x)
+    contradiction
+  · intro
+    contradiction
+
 def ClosedBall (d: Metric X D) (x₀: X) (r: D): Set X :=
   λ x ↦ d x₀ x ≤ r
 
@@ -207,7 +216,15 @@ def is_open_set (d: Metric X D) (S: Set X): Prop :=
   TODO:
   - monotone ball inclusion
   - boundedness
+  - continuous functions:
+    - constant, identity, composition are continuous
+  - Product metric
+
 -/
+
+
+
+
 
 -- Cauchy sequence
 
