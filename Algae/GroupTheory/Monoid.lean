@@ -22,6 +22,7 @@ class Monoid (α: Type u) extends Pointed α, Magma α where
 
 
 -- Introduce `+` and `0` notation to the monoid namespace.
+
 namespace Monoid
 scoped instance [Magma α]: Add α := ⟨op⟩
 scoped instance [Pointed α]: Zero α := ⟨unit⟩
@@ -40,13 +41,14 @@ open Monoid
 
 
 -- Unpack axioms with notation.
+
 theorem op_unit_left [Monoid α] (a: α): 0 + a = a := by
   exact Monoid.identity.left a
 
 theorem op_unit_right [Monoid α] (a: α): a + 0 = a := by
   exact Monoid.identity.right a
 
-theorem op_assoc [Monoid M] (a b c: M): a + b + c = a + (b + c) := by
+theorem op_assoc [Monoid α] (a b c: α): a + b + c = a + (b + c) := by
   exact Monoid.assoc a b c
 
 def inverses [Monoid α] (a b: α): Prop :=
@@ -62,7 +64,6 @@ In a monoid we can define multiplication by natural numbers via
 2 • a = a + a
 etc.
 -/
-
 
 theorem ngen_zero' [Monoid α] (a: α): 0 • a = 0 := by
   rfl
@@ -117,8 +118,17 @@ theorem left_right_inverse_eq [Monoid α] {a b c: α}
     _ = 0 + c       := by rw [h₁]
     _ = c           := by rw [op_unit_left]
 
--- On any type α the set of functions α → α is a monoid.
-instance Monoid.endo (α: Type u): Monoid (α → α) := {
+-- On any type α the set of functions α → α is a monoid,
+-- with composition in either order.
+
+instance Monoid.endo.left (α: Type u): Monoid (α → α) := {
+  op := λ f g ↦ f ∘ g
+  unit := Function.id
+  identity := by constructor <;> exact congrFun rfl
+  assoc := by intro _ _ _ ; rfl
+}
+
+instance Monoid.endo.right (α: Type u): Monoid (α → α) := {
   op := λ f g ↦ g ∘ f
   unit := Function.id
   identity := by constructor <;> exact congrFun rfl
@@ -126,6 +136,7 @@ instance Monoid.endo (α: Type u): Monoid (α → α) := {
 }
 
 -- Lists form a monoid, the "free" monoid.
+
 def Monoid.free (α: Type u): Monoid (List α) := {
   op := List.append
   unit := List.nil
@@ -209,3 +220,8 @@ def Monoid.opposite (M: Monoid α): Monoid α := {
   identity := ⟨identity.right, identity.left⟩
   assoc := by intro x y z; exact Eq.symm (assoc z y x)
 }
+
+-- A zero sum free monoid
+
+def Monoid.zerosumfree (M: Monoid α): Prop :=
+  ∀ a b: α, a + b = 0 → a = 0 ∧ b = 0

@@ -22,10 +22,10 @@ TODO:
 abbrev Symm (α: Type u): Type u :=
   Invertible α α
 
--- The symmetric group.
+-- The (left) symmetric group (with composition order (f, g) ↦ g;f = f ∘ g)
 
-instance Group.symm (α: Type u): Group (Symm α) := {
-  op := flip Invertible.comp
+instance Group.symm.left (α: Type u): Group (Symm α) := {
+  op := λ f g ↦ Invertible.comp g f
   unit := Invertible.id
   identity := by constructor <;> (intro; ext; repeat rfl)
   assoc := by (repeat intro); rfl
@@ -33,10 +33,27 @@ instance Group.symm (α: Type u): Group (Symm α) := {
   inverse := by
     constructor <;> (
       intro f
-      simp [Invertible.inverse, Invertible.id, flip, Invertible.comp]
+      simp [Invertible.inverse, Invertible.id, Invertible.comp]
     )
     apply f.id_left
     apply f.id_right
+}
+
+-- The (right) symmetric group (with composition order (f, g) ↦ f;g = g ∘ f)
+
+instance Group.symm.right (α: Type u): Group (Symm α) := {
+  op := λ f g ↦ Invertible.comp f g
+  unit := Invertible.id
+  identity := by constructor <;> (intro; ext; repeat rfl)
+  assoc := by (repeat intro); rfl
+  inv := Invertible.inverse
+  inverse := by
+    constructor <;> (
+      intro f
+      simp [Invertible.inverse, Invertible.id, Invertible.comp]
+    )
+    apply f.id_right
+    apply f.id_left
 }
 
 /-
@@ -70,7 +87,7 @@ def Group.symm_embed (G: Group α) (g: α): Symm α := {
 
 -- Next we can show the embedding above is a group homomorphisms.
 
-def Group.symm_embed_hom (G: Group α): hom G (Group.symm α) := sorry -- broke it :(
+def Group.symm_embed_hom (G: Group α): hom G (Group.symm.right α) := sorry -- broke it :(
 
 -- Finally we show the embedding is injective.
 
@@ -85,5 +102,5 @@ def Group.symm_embed_left_invertible (G: Group α): LeftInvertible α (Symm α) 
 
 -- The image of the embedding is a subgroup.
 
-theorem Group.symm_embed_subgroup (G: Group α): (Group.symm α).sub (Set.range G.symm_embed) := by
+theorem Group.symm_embed_subgroup (G: Group α): (Group.symm.right α).sub (Set.range G.symm_embed) := by
   sorry
