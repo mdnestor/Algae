@@ -12,7 +12,7 @@ open Group
 def Conjugate [Group α] (g: α): α → α :=
   λ a ↦ g + a + -g
 
-def Conjugate.action [Group α]: Action α α := {
+def Group.conjugation [G: Group α]: G.action α := {
   act := Conjugate
   op := by
     intro a b x
@@ -31,7 +31,7 @@ def Conjugate.action [Group α]: Action α α := {
 -- A normal subgroup is one which is invariant under conjugation.
 
 class Group.normalSubgroup [G: Group α] (S: Set α) extends toSubgroup: G.sub S where
-  conj_invariant: Conjugate.action.invariant_set S
+  conj_invariant: Group.conjugation.invariant_set S
 
 -- In a commutative group, conjugation is trivial since gag⁻¹ = agg⁻¹ = a.
 
@@ -44,30 +44,94 @@ theorem CommGroup.conjugate_trivial [CommGroup α] (g: α): Conjugate g = Functi
 theorem CommGroup.subgroup_normal [G: CommGroup α] {S: Set α} (h: G.sub S): G.normalSubgroup S := by
   constructor
   intro _ _ hx
-  simp [Conjugate.action, CommGroup.conjugate_trivial]
+  simp [Group.conjugation, CommGroup.conjugate_trivial]
   exact hx
 
 
 
--- Given an element g and set S, the (left) coset is defined g + S = {g + a | a ∈ S}.
+-- Given an element a and set S, the (left) coset is defined a • S = {a + s | s ∈ S}.
 
 def Coset [Magma α] (g: α) (S: Set α): Set α :=
-  Set.image (λ a ↦ op g a) S
+  Set.image (λ a ↦ g + a) S
 
--- Given a set S, there is a relation that says a related to b if a + S = b + S.
+-- The action which sends (a, H) ↦ aH and satisfies (a + b) • S = a • (b • S).
 
-def Coset.relation [Magma α] (S: Set α): Endorelation α :=
+def Group.coset_action (G: Group α): G.action (Set α) := {
+  act := λ a H ↦ Set.image (λ x ↦ a + x) H
+  op := by
+    intro a b H
+    funext z
+    simp
+    constructor
+    intro ⟨x, ⟨y, h1, h2⟩, h3⟩
+    simp_all [Set.image]
+    sorry
+    intro ⟨x, h1, h2⟩
+    simp_all [Set.image]
+    sorry
+  id := by
+    intro H
+    simp [op_unit_left]
+    sorry -- trivial
+}
+
+-- The coset action which sends (g, H) ↦ gHg⁻¹ and is also a left action.
+
+def Group.coset_conjugate (G: Group α): G.action (Set α) := {
+  act := λ a H ↦ Set.image (λ x ↦ Conjugate a x) H
+  op := by
+    intro a b H
+    funext z
+    simp
+    constructor
+    intro ⟨x, ⟨y, h1, h2⟩, h3⟩
+    simp_all [Set.image, Conjugate]
+    sorry
+    intro ⟨x, h1, h2⟩
+    simp_all [Set.image, Conjugate]
+    sorry
+  id := by
+    intro H
+    sorry
+}
+
+-- Given a set S, the equivalence relation a ~ b if a • S = b • S.
+
+def coset_relation [Magma α] (S: Set α): Endorelation α :=
   λ a b ↦ Coset a S = Coset b S
 
--- TODO: simplify this? is just pullback of equality..
-theorem Coset.equivalence [Magma α] (S: Set α): Equivalence (Coset.relation S) := by
+theorem coset_equivalence [Magma α] (S: Set α): Equivalence (coset_relation S) := by
   constructor
   · intro; apply Eq.refl
   · intro _ _ h; exact Eq.symm h
   · intro _ _ _ h1 h2; exact Eq.trans h1 h2
 
 def Coset.quotient [Magma α] (S: Set α): Type u :=
-  Quotient ⟨Coset.relation S, Coset.equivalence S⟩
+  Quotient ⟨coset_relation S, coset_equivalence S⟩
+
+/-
+
+Lifting the operations of a group to operations on cosets.
+
+This is quite challenging. First example: if a ∼ b, i.e. aH = bH, show that a⁻¹ ∼ b⁻¹, i.e. a⁻¹H = b⁻¹H.
+
+Multiplicative notation for convenience. The standard paper proof is:
+
+a⁻¹H = Ha⁻¹     conjugate by a
+     = bHa⁻¹b⁻¹ conjugate by b
+     = aHa⁻¹b⁻¹ assumption
+     = Hb⁻¹     since aHa⁻¹ = H
+     = b⁻¹H     conjugate by b
+
+However we don't necessarily want to use right cosets.
+
+
+
+-/
+theorem Coset.lift_inverse [G: Group α] (H: Set α) (hH: G.normalSubgroup H) (a b: α) (hab: Coset a H = Coset b H):
+  Coset (-a) H = Coset (-b) H := by
+
+  sorry
 
 def QuotientGroup [G: Group α] (H: Set α) (h: G.normalSubgroup H): Group (Coset.quotient H) := {
   unit := Quotient.mk _ unit
