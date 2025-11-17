@@ -113,21 +113,44 @@ def Coset.quotient [Magma α] (S: Set α): Type u :=
 
 Lifting the operations of a group to operations on cosets.
 
-This is quite challenging. First example: if a ∼ b, i.e. aH = bH, show that a⁻¹ ∼ b⁻¹, i.e. a⁻¹H = b⁻¹H.
+First example: if a ∼ b, i.e. aH = bH, show that a⁻¹ ∼ b⁻¹, i.e. a⁻¹H = b⁻¹H.
 
-Multiplicative notation for convenience. The standard paper proof is:
+Multiplicative notation for convenience. The paper proof is:
 
-a⁻¹H = Ha⁻¹     conjugate by a
-     = bHa⁻¹b⁻¹ conjugate by b
-     = aHa⁻¹b⁻¹ assumption
-     = Hb⁻¹     since aHa⁻¹ = H
-     = b⁻¹H     conjugate by b
+a⁻¹H = a⁻¹ (b H b⁻¹)  conjugate by b
+     = a⁻¹ (b H) b⁻¹
+     = a⁻¹ (a H) b⁻¹  assumption
+     = (a⁻¹ a) H b⁻¹
+     = H b⁻¹
+     = (b⁻¹ H b) b⁻¹  conjugate by b⁻¹
+     = b⁻¹ H b b⁻¹
+     = b⁻¹ H
 
 However we don't necessarily want to use right cosets.
+Instead we can exclusively use left cosets and conjugations.
+Let aH denote the coset and φ(g, H) = gHg⁻¹ denote conjugation by g.
+The idea is to "balance" the equation each time a right coset appears via:
 
+  Ha = aa⁻¹Ha = a φ(a⁻¹, H)
 
+For a normal subgroup φ(g, H) = H for all g. So the argument above becomes
+
+a⁻¹H = a⁻¹    (b H b⁻¹)              = a⁻¹ φ(b, H)
+     = a⁻¹b⁻¹ (b (bH) b⁻¹)           = a⁻¹b⁻¹ φ(b, bH)
+     = a⁻¹b⁻¹ (b (aH) b⁻¹)           = a⁻¹b⁻¹ φ(b, aH)
+     = a⁻¹b⁻¹ bab⁻¹ = b⁻¹H
+     = a⁻¹b⁻¹ (b (a (b⁻¹ H b)) b⁻¹)  = a⁻¹b⁻¹ φ(b, a φ(b⁻¹, H)
+     = ...
+      = H
+
+So the needed lemmas are:
+- φ(x, H) = x⁻¹ φ(x, xH)
+- φ(x⁻¹, H) = x φ(x⁻¹, x⁻¹H)
+- φ(x, yH) = x(yH)x⁻¹ = xyHx⁻¹ = xyx⁻¹H
+- also g(aH)g⁻¹ = aH
 
 -/
+
 theorem Coset.lift_inverse [G: Group α] (H: Set α) (hH: G.normalSubgroup H) (a b: α) (hab: Coset a H = Coset b H):
   Coset (-a) H = Coset (-b) H := by
 
