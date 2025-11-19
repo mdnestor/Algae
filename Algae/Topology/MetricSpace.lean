@@ -297,3 +297,6 @@ theorem CauchyRelation.equiv (hd: DistanceComplete D) (d₀: Endometric D) (hd�
     -- exact hn₂ m (Nat.max_le.mp hm).right
     -- exact hr₂
 }
+
+def CauchyRelation.quotient (hd: DistanceComplete D) (d₀: Endometric D) (hd₀: d₀.obedient) (d: Metric X D): Type u :=
+  Quotient ⟨CauchyRelation d₀ d, CauchyRelation.equiv hd d₀ hd₀ d⟩
