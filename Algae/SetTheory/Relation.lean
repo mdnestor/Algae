@@ -106,3 +106,18 @@ def Endorelation.map_equivalence (f: α → β): Equivalence (pullback_eq f) := 
   intro; rfl
   sorry
   sorry
+
+class Preorder (X: Type u) extends LE X where
+  reflexive: ∀ x: X, x ≤ x
+  transitive: ∀ x y z: X, x ≤ y → y ≤ z → x ≤ z
+
+class PartialOrder (X: Type u) extends Preorder X where
+  antisymmetric: ∀ x y: X, x ≤ y → y ≤ x → x = y
+
+class Lattice (X: Type u) extends PartialOrder X, Min X, Max X where
+  max_le_left: ∀ x y, x ≤ max x y
+  max_le_right: ∀ x y, y ≤ max x y
+  max_lub: ∀ x y z, x ≤ z → y ≤ z → max x y ≤ z
+  min_le_left: ∀ x y, min x y ≤ x
+  min_le_right: ∀ x y, min x y ≤ y
+  min_glb: ∀ x y z, z ≤ x → z ≤ y → z ≤ min x y

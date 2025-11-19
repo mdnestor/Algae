@@ -1,4 +1,5 @@
 import Algae.RingTheory.Field
+import Algae.SetTheory.Relation
 
 /-
 
@@ -108,12 +109,6 @@ def setoid (h: M.sub β): Setoid (α × β) := {
 def quotient (h: M.sub β): Type u :=
   Quotient (setoid h)
 
-def setoid.full: Setoid (α × @Set.full α) :=
-  setoid M.full_sub
-
-abbrev quotient.full (α: Type u) [M: CommMonoid α]: Type u :=
-  quotient M.full_sub
-
 def quotient.unit (h: M.sub β): quotient h :=
   Quotient.mk _ (0, ⟨0, h.unit_mem⟩)
 
@@ -186,6 +181,11 @@ instance Localization (h: M.sub β): CommMonoid (quotient h) := {
     · simp [op_comm]
 }
 
+def setoid.full: Setoid (α × @Set.full α) :=
+  setoid M.full_sub
+
+abbrev quotient.full (α: Type u) [M: CommMonoid α]: Type u :=
+  quotient M.full_sub
 
 def quotient.inv_pre: α × @Set.full α → α × @Set.full α :=
   λ (a, b) =>(b, ⟨a, by trivial⟩)
@@ -276,6 +276,9 @@ section Multiplicative
 variable {α: Type u} [R: CommRing α] {β: Set α}
 
 -- The "lower" operation, i.e. addition.
+-- (a, b) * (c, d)
+-- a/b * c/d  =  (ac)/(bd)
+-- a/b + c/d = (ad + bc) / (bd)
 def quotient.lower.op_pre (h: R.toMulMonoid.sub β): Op (α × β) :=
   λ (a₁, ⟨b₁, h₁⟩) (a₂, ⟨b₂, h₂⟩) ↦ (a₁ * b₂ + a₂ * b₁, ⟨b₁ * b₂, h.op_closed b₁ b₂ h₁ h₂⟩)
 
@@ -374,4 +377,98 @@ instance Localization.multiplicative [R: CommRing α] (h: R.toMulMonoid.sub β):
 
 -- TODO: if we localize by all nonzero elements, we should get a field.
 
+/-
+synthesized type class instance is not definitionally equal to expression inferred by typing rules, synthesized
+  @instCommMonoidOfCommSemiring α (@CommRing.toCommSemiring α R✝)
+inferred
+  @CommSemiring.toMulMonoid α (@CommRing.toCommSemiring α R.R)
+-/
+
+-- instance Localization.field_of_fractions [R: IntegralDomain α]: Field (quotient R.nonzero_submonoid) :=
+--   sorry
+
 end Multiplicative
+
+
+
+-- Lifting the order structure to the localization
+-- (a, b) ≤ (c, d)
+
+section OrderLift
+
+open Monoid
+
+variable {α: Type u} [P: PartialOrder α] [M: CommMonoid α] {β: Set α}
+
+def order_compatible (M: CommMonoid α) (P: PartialOrder α): Prop :=
+  ∀ {a b c: α}, a ≤ b → a + c ≤ b + c
+
+def quotient.le_pre: Endorelation (α × β) :=
+  λ (a₁, a₂) (b₁, b₂) ↦ ∃ t, a₁ + b₂ + t ≤ b₁ + a₂ + t
+
+instance: Trans P.le P.le P.le := {
+  trans := @P.transitive
+}
+
+-- Need the monoid M to have the property
+-- a ≤ b ↔ a + c ≤ b + c
+theorem quotient.le_lifts_imp (h: order_compatible M P): ∀ a b c d: (α × β), a ≈ c → b ≈ d → quotient.le_pre a b → quotient.le_pre c d := by
+  intro ⟨a₁, a₂⟩ ⟨b₁, b₂⟩ ⟨c₁, c₂⟩ ⟨d₁, d₂⟩ ⟨t₁, ht₁₁, ht₁₂⟩ ⟨t₂, ht₂₁, ht₂₂⟩ ⟨t, ht⟩
+  let t' := a₂ + b₁ + t₁ + t₂ + t
+  exists t'
+  calc
+    c₁ + d₂ + (a₂ + b₁ + t₁ + t₂ + t)
+      = (c₁ + a₂ + t₁) + (b₁ + d₂ + t₂) + t := by sorry
+    _ = (a₁ + c₂ + t₁) + (d₁ + b₂ + t₂) + t := by rw [ht₁₂, ht₂₂]
+    _ = (a₁ + b₂ + t) + (c₂ + d₁ + t₁ + t₂) := by sorry
+    _ ≤ (b₁ + a₂ + t) + (c₂ + d₁ + t₁ + t₂) := by apply h ht
+    _ ≤ d₁ + c₂ + (a₂ + b₁ + t₁ + t₂ + t) := by sorry
+
+theorem quotient.le_lifts (h: order_compatible M P) (hB: M.sub β): ∀ a b c d: (α × β), a ≈ c → b ≈ d → quotient.le_pre a b = quotient.le_pre c d := by
+  intro a b c d h₁ h₂
+  simp
+  constructor
+  exact le_lifts_imp h a b c d h₁ h₂
+  exact le_lifts_imp h c d a b ((equivalence hB).symm h₁) ((equivalence hB).symm h₂)
+
+def quotient.le (h₀: order_compatible M P) (h: M.sub β): Endorelation (quotient h) :=
+  λ x y ↦ Quotient.liftOn₂ x y _ (quotient.le_lifts h₀ h)
+
+-- a-b ≤ c-d ↔ a+d ≤ b+c
+
+-- Show if a~a' and b~b' and a≤b then a'≤b'
+
+section MultiplicativeOrderLift
+
+section OrderLift
+
+open Monoid
+
+
+def quotient.mul_le_pre: Endorelation (α × β) :=
+  λ (a₁, a₂) (b₁, b₂) ↦ ∃ t, a₁ + a₂ + 2 • b₂ + t ≤ b₁ + 2 • a₂ + b₂ + t
+
+theorem quotient.mul_le_lifts_imp (h: order_compatible M P): ∀ a b c d: (α × β), a ≈ c → b ≈ d → quotient.mul_le_pre a b → quotient.mul_le_pre c d := by
+  intro ⟨a₁, a₂⟩ ⟨b₁, b₂⟩ ⟨c₁, c₂⟩ ⟨d₁, d₂⟩ ⟨t₁, ht₁₁, ht₁₂⟩ ⟨t₂, ht₂₁, ht₂₂⟩ ⟨t, ht⟩
+  let t': α := 2•a₂ + b₁ + b₂ + t₁ + t₂ + t
+  exists t'
+  calc
+    c₁ + c₂ + 2 • d₂ + (2•a₂ + b₁ + b₂ + t₁ + t₂ + t)
+    _ = (c₁ + a₂ + t₁) + (b₁ + d₂ + t₂) + (a₂ + b₂ + c₂ + d₂ + t) := by sorry
+    _ = (a₁ + c₂ + t₁) + (d₁ + b₂ + t₂) + (a₂ + b₂ + c₂ + d₂ + t) := by rw [ht₁₂, ht₂₂]
+    _ = (a₁ + a₂ + 2 • b₂ + t) + (2•c₂ + d₁ + d₂ + t₁ + t₂) := by sorry
+    _ ≤ (b₁ + 2 • a₂ + b₂ + t) + (2•c₂ + d₁ + d₂ + t₁ + t₂) := by apply h ht
+    _ ≤ d₁ + 2 • c₂ + d₂ + (2•a₂ + b₁ + b₂ + t₁ + t₂ + t) := sorry
+
+theorem quotient.mul_le_lifts (h: order_compatible M P) (hB: M.sub β): ∀ a b c d: (α × β), a ≈ c → b ≈ d → quotient.mul_le_pre a b = quotient.mul_le_pre c d := by
+  intro a b c d h₁ h₂
+  simp
+  constructor
+  exact mul_le_lifts_imp h a b c d h₁ h₂
+  exact mul_le_lifts_imp h c d a b ((equivalence hB).symm h₁) ((equivalence hB).symm h₂)
+
+def quotient.mul_le (h₀: order_compatible M P) (h: M.sub β): Endorelation (quotient h) :=
+  λ x y ↦ Quotient.liftOn₂ x y _ (quotient.le_lifts h₀ h)
+
+
+-- a/b ≤ c/d ↔ ad^2 ≤ bd^2
