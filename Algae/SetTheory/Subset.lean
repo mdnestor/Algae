@@ -1,4 +1,5 @@
 import Algae.SetTheory.Operation
+import Algae.SetTheory.Logic
 
 variable {α: Type u} {β: Type v} {γ: Type w}
 
@@ -15,7 +16,6 @@ def Set.empty {α: Type u}: Set α :=
 def Set.full {α: Type u}: Set α :=
   λ _ ↦ True
 
--- define this
 def Set.singleton {α: Type u} (a: α): Set α :=
   λ x ↦ x = a
 
@@ -54,14 +54,16 @@ def Set.union (A B: Set α): Set α :=
   λ x ↦ x ∈ A ∨ x ∈ B
 
 instance: Union (Set α) := {
-  union := Set.inter
+  union := Set.union
 }
 
 theorem Set.union_left {A B: Set α} {a: α} (h: a ∈ A): a ∈ A ∪ B := by
-  sorry
+  apply Or.inl
+  exact h
 
 theorem Set.union_right {A B: Set α} {a: α} (h: a ∈ B): a ∈ A ∪ B := by
-  sorry
+  apply Or.inr
+  exact h
 
 def Set.compl (A: Set α): Set α :=
   λ x ↦ x ∉ A
@@ -71,16 +73,52 @@ def Set.nonempty (S: Set α): Prop :=
 
 theorem Set.nonempty_iff {S: Set α}: S.nonempty ↔ S ≠ ∅ := by
   constructor
-  intro ⟨a, ha⟩
-  exact ne_of_mem_of_not_mem' ha fun a => a
-  intro h
-  sorry
+  · intro ⟨a, ha⟩
+    intro h
+    have: a ∉ S := by exact of_eq_false (congrFun h a)
+    contradiction
+  · apply contrapose
+    simp [Set.nonempty]
+    intro h
+    funext _
+    simp
+    constructor
+    · intro h'
+      exact h _ h'
+    · intro h'
+      exact False.elim h'
 
 theorem Set.not_nonempty_iff {S: Set α}: ¬S.nonempty ↔ S = ∅ := by
-  sorry
+  apply contrapose_iff
+  simp
+  exact Iff.symm nonempty_iff
 
 theorem Set.compl_empty_iff {S: Set α}: S.compl = ∅ ↔ S = Set.full := by
-  sorry
+  constructor
+  · intro h
+    funext x
+    simp
+    constructor
+    · intro
+      trivial
+    · intro _
+      by_cases hx: x ∈ S
+      · exact hx
+      · have: x ∈ S.compl := by exact hx
+        simp_all
+        contradiction
+  · intro h
+    funext x
+    simp
+    constructor
+    · intro h'
+      by_cases hx: x ∈ S
+      · contradiction
+      · rw [h] at hx
+        have: x ∈ full := by trivial
+        contradiction
+    · intro h'
+      contradiction
 
 def Set.subtype (A: Set α): Type u :=
   Σ a, PLift (a ∈ A)
@@ -157,77 +195,6 @@ theorem Set.inter_comm: Commutative (@Set.inter α) := by
   simp [Set.inter]
   constructor <;> (intro h; exact And.symm h;)
 
--- This is very ugly! :)
--- But I don't know how to simplify it
-example: Distributive (@Set.union α) (@Set.inter α) := by
-  constructor
-  · intro A B C
-    funext x
-    simp [Set.union, Set.inter]
-    constructor
-    · intro h
-      cases h with
-      | inl h => exact ⟨Or.inl h, Or.inl h⟩
-      | inr h => exact ⟨Or.inr h.left, Or.inr h.right⟩
-    · intro ⟨hab, hac⟩
-      by_cases h: x ∈ A
-      · exact Or.inl h
-      · have hb: x ∈ B := by cases hab with
-        | inl ha => contradiction
-        | inr hb => exact hb
-        have hc: x ∈ C := by cases hac with
-        | inl ha => contradiction
-        | inr hc => exact hc
-        exact Or.inr ⟨hb, hc⟩
-  · intro A B C
-    funext x
-    simp
-    constructor
-    · intro h
-      cases h with
-      | inl h => exact ⟨Or.inl h.left, Or.inl h.right⟩
-      | inr h => exact ⟨Or.inr h, Or.inr h⟩
-    · intro ⟨hac, hbc⟩
-      by_cases h: x ∈ C
-      · exact Or.inr h
-      · have ha: x ∈ A := by cases hac with
-        | inl ha => exact ha
-        | inr hc => contradiction
-        have hb: x ∈ B := by cases hbc with
-        | inl hb => exact hb
-        | inr hc => contradiction
-        exact Or.inl ⟨ha, hb⟩
-
-example: Distributive (@Set.inter α) (@Set.union α) := by
-  constructor
-  · intro A B C
-    funext x
-    simp
-    constructor
-    · intro ⟨ha, hbc⟩
-      by_cases hb: x ∈ B
-      · exact Or.inl ⟨ha, hb⟩
-      · have hc: x ∈ C := by cases hbc with
-        | inl hb' => contradiction
-        | inr hc => exact hc
-        exact Or.inr ⟨ha, hc⟩
-    · intro h
-      cases h with
-      | inl hab => exact ⟨hab.left, Or.inl hab.right⟩
-      | inr hac => exact ⟨hac.left, Or.inr hac.right⟩
-  · intro A B C
-    funext x
-    simp
-    constructor
-    · intro ⟨hab, hc⟩
-      cases hab with
-      | inl ha => exact Or.inl ⟨ha, hc⟩
-      | inr hb => exact Or.inr ⟨hb, hc⟩
-    · intro h
-      cases h with
-      | inl hac => exact ⟨Or.inl hac.left, hac.right⟩
-      | inr hbc => exact ⟨Or.inr hbc.left, hbc.right⟩
-
 def Set.image (f: α → β) (A: Set α): Set β :=
   λ b ↦ ∃ a ∈ A, f a = b
 
@@ -244,16 +211,41 @@ def Set.sUnion (S: Set (Set α)): Set α :=
   λ a ↦ ∃ A ∈ S, a ∈ A
 
 theorem Set.sUnion_empty: Set.sUnion (∅: Set (Set α)) = ∅ := by
-  sorry
+  funext x
+  simp [Set.sUnion]
+  constructor
+  · intro ⟨_, _, _⟩
+    contradiction
+  · intro _
+    contradiction
 
 theorem Set.sUnion_full: Set.sUnion (Set.full: Set (Set α)) = Set.full := by
-  sorry
+  funext x
+  simp [Set.sUnion]
+  constructor
+  · intro ⟨_, ha₁, _⟩
+    exact ha₁
+  · intro _
+    exists Set.singleton x
 
 def Set.sInter (S: Set (Set α)): Set α :=
   λ a ↦ ∀ A ∈ S, a ∈ A
 
-theorem Set.sInter_empty: Set.sUnion (∅: Set (Set α)) = Set.full := by
-  sorry
+theorem Set.sInter_empty: Set.sInter (∅: Set (Set α)) = Set.full := by
+  funext x
+  simp [Set.sInter]
+  constructor
+  · intro _
+    trivial
+  · intro _ _ _
+    contradiction
 
-theorem Set.sInter_full: Set.sUnion (Set.full: Set (Set α)) = ∅ := by
-  sorry
+theorem Set.sInter_full: Set.sInter (Set.full: Set (Set α)) = ∅ := by
+  funext x
+  simp [Set.sInter]
+  constructor
+  · intro h
+    have := h ∅ trivial
+    contradiction
+  · intro h
+    contradiction
