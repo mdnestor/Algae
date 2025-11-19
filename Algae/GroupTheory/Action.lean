@@ -19,9 +19,8 @@ TODO:
 
 class Action (α: Type v) [Monoid α] (X: Type u) where
   act: α → X → X
-  op: ∀ a b x, act a (act b x) = act (a + b) x
   id: ∀ x, act 0 x = x
-
+  op: ∀ a b x, act a (act b x) = act (a + b) x
 
 
 export Action (act)
@@ -50,18 +49,33 @@ theorem act_inv [Group α] [Action α X] {a: α} {x z: X} (h: a • x = z): -a �
 
 def Action.endo (M: Monoid α): Action α α := {
   act := M.op
+  id := by exact op_unit_left
   op := by
     intro a b c
     calc
       a + (b + c)
       _ = a + b + c := by rw [op_assoc]
-  id := by exact op_unit_left
 }
 
--- Every action of α on X corresponds to homomorphism from α^op to the monoid of endofunctions on X.
--- (Note we need to take α^op since we use left actions.)
+-- Every action of α on X corresponds to homomorphism from α to the (left) monoid of endofunctions on X.
 
-def Monoid.endoaction [M: Monoid α] [A: Action α X]: hom M.opposite (Monoid.endo X) := {
+def Monoid.endoaction.left [M: Monoid α] [A: Action α X]: hom M (Monoid.endo.left X) := {
+  map := act
+  unit_preserving := by
+    ext x
+    exact act_id x
+  op_preserving := by
+    intro a b
+    ext x
+    calc
+      (a + b) • x
+        = a • (b • x) := by rw [act_op]
+      _ = op (act b) (act a) x := by rfl
+}
+
+-- Likewise there is a hom. from the opposite monoid on α to the (right) monoid of endofunctions on X.
+
+def Monoid.endoaction.right [M: Monoid α] [A: Action α X]: hom M.opposite (Monoid.endo.right X) := {
   map := act
   unit_preserving := by
     ext x
@@ -75,6 +89,18 @@ def Monoid.endoaction [M: Monoid α] [A: Action α X]: hom M.opposite (Monoid.en
       _ = op (act a) (act b) x := by rfl
 }
 
+-- The killing action in a pointed set: sends every element to zero (except the identity action).
+-- Requires the monoid to be zerosumfree.
+
+def KillingAction [DecidableEq α] [M: Monoid α] (hM: M.zerosumfree) [Pointed X]: Action α X := {
+  act := λ a x ↦ if a = 0 then x else 0
+  id := by simp
+  op := by
+    intro a b x
+    by_cases a = 0 <;> by_cases b = 0 <;> simp_all [op_unit_left, op_unit_right]
+    have := hM a b
+    simp_all
+}
 
 
 -- The reachability relation induced by an action:
@@ -109,15 +135,23 @@ theorem Action.reachable_symmetric [Group α] (A: Action α X): Symmetric A.reac
 theorem Action.reachable_equivalence [Group α] (A: Action α X): Equivalence A.reachable := by
   exact ⟨A.reachable_reflexive, A.reachable_symmetric, A.reachable_transitive⟩
 
-def Action.quotient [Group α] (A: Action α X): Type v :=
+-- The set of equivalence classes of orbits of a group action.
+-- i.e. two points x, y ∈ X belong to the same class, with [x] = [y]
+-- if there exists a ∈ α such that a • x = y, and vice versa (-a) • y = x.
+
+def Action.orbits [Group α] (A: Action α X): Type v :=
   Quotient ⟨A.reachable, A.reachable_equivalence⟩
 
 
 
 -- Faithful/free/regular actions.
 
+-- An action is faithful if, whenever a fixes every element, then a = 0.
+
 def Action.faithful [Monoid α] (A: Action α X): Prop :=
   ∀ a: α, (∀ x: X, a • x = x) → a = 0
+
+-- An action is free if nonzero actions *never* fix an element x.
 
 def Action.free [Monoid α] (A: Action α X): Prop :=
   ∀ a: α, (∃ x: X, a • x = x) → a = 0
@@ -145,7 +179,7 @@ theorem Action.regular_iff [Monoid α] (A: Action α X): A.regular ↔ ∀ x y, 
 -- The orbit of x wrt. an action is the set of points reachable from x.
 
 def Action.orbit [Monoid α] (A: Action α X) (x: X): Set X :=
-  λ y ↦ A.reachable x y
+  λ y ↦ ∃ a: α, a • x = y
 
 -- An action is transitive iff. the orbit of every point is the whole set.
 
